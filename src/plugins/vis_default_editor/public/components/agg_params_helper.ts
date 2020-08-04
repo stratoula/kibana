@@ -108,13 +108,14 @@ function getAggParamsToRender({
     if (agg.type.subtype && aggParamsMap[agg.type.subtype]) {
       paramEditor = get(aggParamsMap, [agg.type.subtype, param.name]);
     } else {
+      if (agg.type.name === 'count') return;
       const aggType = agg.type.type;
       const aggName = agg.type.name;
       const aggParams = get(aggParamsMap, [aggType, aggName], {});
       paramEditor = get(aggParams, param.name);
     }
 
-    if (!paramEditor) {
+    if (!paramEditor && agg.type.name !== 'count') {
       paramEditor = get(aggParamsMap, ['common', param.type]);
     }
 
