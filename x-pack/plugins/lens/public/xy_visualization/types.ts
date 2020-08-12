@@ -258,6 +258,16 @@ export const layerConfig: ExpressionFunctionDefinition<
       help: 'The columns to display on the y axis.',
       multi: true,
     },
+    showGridlines: {
+      types: ['boolean'],
+      help: 'Enables the gridlines for y axis',
+      default: true,
+    },
+    showTickLabels: {
+      types: ['boolean'],
+      help: 'Enables the tick labels for y axis',
+      default: true,
+    },
     yConfig: {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       types: ['lens_xy_yConfig' as any],
@@ -302,6 +312,8 @@ export interface LayerConfig {
   yConfig?: YConfig[];
   seriesType: SeriesType;
   splitAccessor?: string;
+  showGridlines: boolean;
+  showTickLabels: boolean;
 }
 
 export type LayerArgs = LayerConfig & {

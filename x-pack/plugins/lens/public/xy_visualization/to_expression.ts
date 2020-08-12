@@ -211,6 +211,8 @@ export const buildExpression = (
                     seriesType: [layer.seriesType],
                     accessors: layer.accessors,
                     columnToLabel: [JSON.stringify(columnToLabel)],
+                    showGridlines: [layer.showGridlines ?? true],
+                    showTickLabels: [layer.showTickLabels ?? true],
                   },
                 },
               ],

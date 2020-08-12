@@ -22,6 +22,8 @@ type GroupsConfiguration = Array<{
   position: 'left' | 'right' | 'bottom' | 'top';
   formatter: IFieldFormat;
   series: Array<{ layer: string; accessor: string }>;
+  showGridlines: boolean;
+  showTickLabels: boolean;
 }>;
 
 export function isFormatterCompatible(
@@ -42,9 +44,13 @@ export function getAxesConfiguration(
     left: [],
     right: [],
   };
+  let showGridlines = true;
+  let showTickLabels = true;
 
   layers.forEach((layer) => {
     const table = tables[layer.layerId];
+    showGridlines = layer.showGridlines;
+    showTickLabels = layer.showTickLabels;
     layer.accessors.forEach((accessor) => {
       const mode =
         layer.yConfig?.find((yAxisConfig) => yAxisConfig.forAccessor === accessor)?.axisMode ||
@@ -90,6 +96,8 @@ export function getAxesConfiguration(
       position: shouldRotate ? 'bottom' : 'left',
       formatter: formatFactory(series.left[0].fieldFormat),
       series: series.left.map(({ fieldFormat, ...currentSeries }) => currentSeries),
+      showGridlines,
+      showTickLabels,
     });
   }
 
@@ -99,6 +107,8 @@ export function getAxesConfiguration(
       position: shouldRotate ? 'top' : 'right',
       formatter: formatFactory(series.right[0].fieldFormat),
       series: series.right.map(({ fieldFormat, ...currentSeries }) => currentSeries),
+      showGridlines,
+      showTickLabels,
     });
   }
 

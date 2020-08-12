@@ -27,6 +27,8 @@ describe('XY Config panels', () => {
           splitAccessor: 'baz',
           xAccessor: 'foo',
           accessors: ['bar'],
+          showGridlines: true,
+          showTickLabels: true,
         },
       ],
     };

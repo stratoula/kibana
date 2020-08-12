@@ -478,6 +478,12 @@ export function XyToolbar(props: VisualizationToolbarProps<State>) {
   );
 }
 const idPrefix = htmlIdGenerator()();
+interface AxesExtras {
+  gridlines: boolean;
+  ticklabels: boolean;
+}
+
+type AxesExtrasKeys = keyof AxesExtras;
 
 export function DimensionEditor(props: VisualizationDimensionEditorProps<State>) {
   const { state, setState, layerId, accessor } = props;
@@ -487,6 +493,32 @@ export function DimensionEditor(props: VisualizationDimensionEditorProps<State>)
     (layer.yConfig &&
       layer.yConfig?.find((yAxisConfig) => yAxisConfig.forAccessor === accessor)?.axisMode) ||
     'auto';
+
+  const axesExtras = {
+    gridlines: layer.showGridlines ?? true,
+    ticklabels: layer.showTickLabels ?? true,
+  };
+
+  const onAxesExtrasChange = (optionId: string): void => {
+    const id = optionId as AxesExtrasKeys;
+    const newAxesExtras = {
+      ...axesExtras,
+      ...{
+        [id]: !axesExtras[id],
+      },
+    };
+    setState(
+      updateLayer(
+        state,
+        {
+          ...layer,
+          showGridlines: newAxesExtras.gridlines,
+          showTickLabels: newAxesExtras.ticklabels,
+        },
+        index
+      )
+    );
+  };
 
   return (
     <EuiForm>
@@ -543,6 +575,34 @@ export function DimensionEditor(props: VisualizationDimensionEditorProps<State>)
             }
             setState(updateLayer(state, { ...layer, yConfig: newYAxisConfigs }, index));
           }}
+        />
+      </EuiFormRow>
+      <EuiFormRow
+        display="columnCompressed"
+        fullWidth
+        label={i18n.translate('xpack.lens.xyChart.axesExtras', {
+          defaultMessage: 'Axes Extras',
+        })}
+      >
+        <EuiButtonGroup
+          isFullWidth
+          name="lnsAxesExtras"
+          data-test-subj="lnsAxesExtras"
+          legend="Group of Axes Extras"
+          options={[
+            {
+              id: 'gridlines',
+              label: 'Gridlines',
+            },
+            {
+              id: 'ticklabels',
+              label: 'TickLabels',
+            },
+          ]}
+          idToSelectedMap={axesExtras}
+          onChange={(id) => onAxesExtrasChange(id)}
+          buttonSize="compressed"
+          type="multi"
         />
       </EuiFormRow>
     </EuiForm>

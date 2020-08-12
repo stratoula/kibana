@@ -152,7 +152,8 @@ export const xyVisualization: Visualization<State, PersistableState> = {
             accessors: [],
             position: Position.Top,
             seriesType: defaultSeriesType,
-            showGridlines: false,
+            showGridlines: true,
+            showTickLabels: true,
           },
         ],
       }
