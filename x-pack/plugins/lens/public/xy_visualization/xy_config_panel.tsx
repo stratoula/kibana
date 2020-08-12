@@ -139,13 +139,17 @@ export function XyToolbar(props: VisualizationToolbarProps<State>) {
     (layer) => layer.seriesType === 'line' || layer.seriesType === 'area'
   );
 
+  const hasRightAxis = state?.layers.some(
+    (layer) => (layer.yConfig && layer.yConfig.length > 0) || false
+  );
+
   const [xAxisTitle, setXAxisTitle] = useState(state?.xTitle);
-  const [yAxisTitle, setYAxisTitle] = useState(state?.yTitle);
+  const [yLeftAxisTitle, setYLeftAxisTitle] = useState(state?.yTitle);
 
   const xyTitles = useCallback(() => {
     const defaults = {
       xTitle: xAxisTitle,
-      yTitle: yAxisTitle,
+      yTitle: yLeftAxisTitle,
     };
     const layer = state?.layers[0];
     if (!layer || !layer.accessors.length) {
@@ -175,7 +179,7 @@ export function XyToolbar(props: VisualizationToolbarProps<State>) {
       yTitle,
     }: { xTitle: string | undefined; yTitle: string | undefined } = xyTitles();
     setXAxisTitle(xTitle);
-    setYAxisTitle(yTitle);
+    setYLeftAxisTitle(yTitle);
   }, [xyTitles]);
 
   const onXTitleChange = (value: string): void => {
@@ -184,7 +188,7 @@ export function XyToolbar(props: VisualizationToolbarProps<State>) {
   };
 
   const onYTitleChange = (value: string): void => {
-    setYAxisTitle(value);
+    setYLeftAxisTitle(value);
     setState({ ...state, yTitle: value });
   };
 
@@ -464,11 +468,11 @@ export function XyToolbar(props: VisualizationToolbarProps<State>) {
               placeholder={i18n.translate('xpack.lens.xyChart.overwriteYaxis', {
                 defaultMessage: 'Overwrite Y-axis title',
               })}
-              value={yAxisTitle || ''}
+              value={yLeftAxisTitle || ''}
               disabled={state && 'showYAxisTitle' in state ? !state.showYAxisTitle : false}
               onChange={({ target }) => onYTitleChange(target.value)}
-              aria-label={i18n.translate('xpack.lens.xyChart.overwriteYaxis', {
-                defaultMessage: 'Overwrite Y-axis title',
+              aria-label={i18n.translate('xpack.lens.xyChart.overwriteLeftYaxis', {
+                defaultMessage: 'Overwrite Left Y-axis title',
               })}
             />
           </EuiFormRow>
