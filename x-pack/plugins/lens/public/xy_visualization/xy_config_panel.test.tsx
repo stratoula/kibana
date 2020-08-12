@@ -136,7 +136,8 @@ describe('XY Config panels', () => {
           state={{
             ...state,
             xTitle: 'My custom X axis title',
-            yLeftTitle: 'My custom Y axis title',
+            yLeftTitle: 'My custom Y left axis title',
+            yRightTitle: 'My custom Y right axis title',
           }}
         />
       );
@@ -144,8 +145,11 @@ describe('XY Config panels', () => {
       expect(component.find('[data-test-subj="lnsXAxisTitle"]').prop('value')).toBe(
         'My custom X axis title'
       );
-      expect(component.find('[data-test-subj="lnsYAxisTitle"]').prop('value')).toBe(
-        'My custom Y axis title'
+      expect(component.find('[data-test-subj="lnsYLeftAxisTitle"]').prop('value')).toBe(
+        'My custom Y left axis title'
+      );
+      expect(component.find('[data-test-subj="lnsYRightAxisTitle"]').prop('value')).toBe(
+        'My custom Y right axis title'
       );
     });
 
@@ -159,12 +163,13 @@ describe('XY Config panels', () => {
             ...state,
             showXAxisTitle: false,
             showYLeftAxisTitle: false,
+            showYRightAxisTitle: false,
           }}
         />
       );
 
       expect(component.find('[data-test-subj="lnsXAxisTitle"]').prop('disabled')).toBe(true);
-      expect(component.find('[data-test-subj="lnsYAxisTitle"]').prop('disabled')).toBe(true);
+      expect(component.find('[data-test-subj="lnsYLeftAxisTitle"]').prop('disabled')).toBe(true);
     });
 
     it('has the tick labels buttons enabled', () => {

@@ -139,17 +139,17 @@ export function XyToolbar(props: VisualizationToolbarProps<State>) {
     (layer) => layer.seriesType === 'line' || layer.seriesType === 'area'
   );
 
-  const hasRightAxis = state?.layers.some(
-    (layer) => (layer.yConfig && layer.yConfig.length > 0) || false
-  );
+  const rightAxisLayer = state?.layers.filter((layer) => layer.yConfig && layer.yConfig.length > 0);
 
-  const [xAxisTitle, setXAxisTitle] = useState(state?.xTitle);
-  const [yLeftAxisTitle, setYLeftAxisTitle] = useState(state?.yLeftTitle);
+  const [xAxisTitle, setXAxisTitle] = useState<string | undefined>('');
+  const [yLeftAxisTitle, setYLeftAxisTitle] = useState<string | undefined>('');
+  const [yRightAxisTitle, setYRightAxisTitle] = useState<string | undefined>('');
 
   const xyTitles = useCallback(() => {
     const defaults = {
-      xTitle: xAxisTitle,
-      yLeftTitle: yLeftAxisTitle,
+      xTitle: state?.xTitle,
+      yLeftTitle: state?.yLeftTitle,
+      yRightTitle: state?.yRightTitle,
     };
     const layer = state?.layers[0];
     if (!layer || !layer.accessors.length) {
@@ -160,11 +160,24 @@ export function XyToolbar(props: VisualizationToolbarProps<State>) {
       return defaults;
     }
     const x = layer.xAccessor ? datasource.getOperationForColumnId(layer.xAccessor) : null;
-    const y = layer.accessors[0] ? datasource.getOperationForColumnId(layer.accessors[0]) : null;
+    const yLeft = layer.accessors[0]
+      ? datasource.getOperationForColumnId(layer.accessors[0])
+      : null;
+
+    let yRightTitle: string | undefined = '';
+    if (rightAxisLayer.length > 0) {
+      const yConfig = rightAxisLayer[0].yConfig;
+      const dataSourceNewLayer = frame.datasourceLayers[rightAxisLayer[0].layerId];
+      const y = yConfig
+        ? dataSourceNewLayer.getOperationForColumnId(yConfig[yConfig.length - 1].forAccessor)
+        : null;
+      yRightTitle = y?.label;
+    }
 
     return {
       xTitle: defaults.xTitle || x?.label,
-      yLeftTitle: defaults.yLeftTitle || y?.label,
+      yLeftTitle: defaults.yLeftTitle || yLeft?.label,
+      yRightTitle: defaults.yRightTitle || yRightTitle,
     };
     /* We want this callback to run only if open changes its state. What we want to accomplish here is to give the user a better UX.
        By default these input fields have the axis legends. If the user changes the input text, the axis legends should also change.
@@ -177,19 +190,31 @@ export function XyToolbar(props: VisualizationToolbarProps<State>) {
     const {
       xTitle,
       yLeftTitle,
-    }: { xTitle: string | undefined; yLeftTitle: string | undefined } = xyTitles();
+      yRightTitle,
+    }: {
+      xTitle: string | undefined;
+      yLeftTitle: string | undefined;
+      yRightTitle: string | undefined;
+    } = xyTitles();
     setXAxisTitle(xTitle);
     setYLeftAxisTitle(yLeftTitle);
+    setYRightAxisTitle(yRightTitle);
   }, [xyTitles]);
 
+  // ToDo: do it one function
   const onXTitleChange = (value: string): void => {
     setXAxisTitle(value);
     setState({ ...state, xTitle: value });
   };
 
-  const onYTitleChange = (value: string): void => {
+  const onYLeftTitleChange = (value: string): void => {
     setYLeftAxisTitle(value);
     setState({ ...state, yLeftTitle: value });
+  };
+
+  const onYRightTitleChange = (value: string): void => {
+    setYRightAxisTitle(value);
+    setState({ ...state, yRightTitle: value });
   };
 
   type AxesSettingsConfigKeys = keyof AxesSettingsConfig;
@@ -463,19 +488,59 @@ export function XyToolbar(props: VisualizationToolbarProps<State>) {
             }
           >
             <EuiFieldText
-              data-test-subj="lnsYAxisTitle"
+              data-test-subj="lnsYLeftAxisTitle"
               compressed
               placeholder={i18n.translate('xpack.lens.xyChart.overwriteYaxis', {
                 defaultMessage: 'Overwrite Left Y-axis title',
               })}
               value={yLeftAxisTitle || ''}
               disabled={state && 'showYLeftAxisTitle' in state ? !state.showYLeftAxisTitle : false}
-              onChange={({ target }) => onYTitleChange(target.value)}
+              onChange={({ target }) => onYLeftTitleChange(target.value)}
               aria-label={i18n.translate('xpack.lens.xyChart.overwriteLeftYaxis', {
                 defaultMessage: 'Overwrite Left Y-axis title',
               })}
             />
           </EuiFormRow>
+          {rightAxisLayer.length > 0 && (
+            <EuiFormRow
+              display="columnCompressed"
+              label={
+                <EuiFlexGroup gutterSize="s">
+                  <EuiFlexItem grow={false}>Right Y-axis</EuiFlexItem>
+                  <EuiFlexItem>
+                    <EuiSwitch
+                      compressed
+                      data-test-subj="lnsShowYRightAxisTitleSwitch"
+                      showLabel={false}
+                      label={i18n.translate('xpack.lens.xyChart.ShowYRightAxisTitleLabel', {
+                        defaultMessage: 'Show Right Y-axis Title',
+                      })}
+                      onChange={({ target }) =>
+                        setState({ ...state, showYRightAxisTitle: target.checked })
+                      }
+                      checked={state?.showYRightAxisTitle ?? true}
+                    />
+                  </EuiFlexItem>
+                </EuiFlexGroup>
+              }
+            >
+              <EuiFieldText
+                data-test-subj="lnsYRightAxisTitle"
+                compressed
+                placeholder={i18n.translate('xpack.lens.xyChart.overwriteYaxis', {
+                  defaultMessage: 'Overwrite Right Y-axis title',
+                })}
+                value={yRightAxisTitle || ''}
+                disabled={
+                  state && 'showYRightAxisTitle' in state ? !state.showYRightAxisTitle : false
+                }
+                onChange={({ target }) => onYRightTitleChange(target.value)}
+                aria-label={i18n.translate('xpack.lens.xyChart.overwriteRightYaxis', {
+                  defaultMessage: 'Overwrite Right Y-axis title',
+                })}
+              />
+            </EuiFormRow>
+          )}
         </EuiPopover>
       </EuiFlexItem>
     </EuiFlexGroup>

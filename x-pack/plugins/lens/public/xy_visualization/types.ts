@@ -315,11 +315,13 @@ export type LayerArgs = LayerConfig & {
 export interface XYArgs {
   xTitle: string;
   yLeftTitle: string;
+  yRightTitle: string;
   legend: LegendConfig & { type: 'lens_xy_legendConfig' };
   layers: LayerArgs[];
   fittingFunction?: FittingFunction;
   showXAxisTitle?: boolean;
   showYLeftAxisTitle?: boolean;
+  showYRightAxisTitle?: boolean;
   tickLabelsVisibilitySettings?: AxesSettingsConfig & { type: 'lens_xy_tickLabelsConfig' };
   gridlinesVisibilitySettings?: AxesSettingsConfig & { type: 'lens_xy_gridlinesConfig' };
 }
@@ -332,8 +334,10 @@ export interface XYState {
   layers: LayerConfig[];
   xTitle?: string;
   yLeftTitle?: string;
+  yRightTitle?: string;
   showXAxisTitle?: boolean;
   showYLeftAxisTitle?: boolean;
+  showYRightAxisTitle?: boolean;
   tickLabelsVisibilitySettings?: AxesSettingsConfig;
   gridlinesVisibilitySettings?: AxesSettingsConfig;
 }

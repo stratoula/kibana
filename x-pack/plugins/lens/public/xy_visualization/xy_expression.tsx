@@ -87,7 +87,11 @@ export const xyChart: ExpressionFunctionDefinition<
     },
     yLeftTitle: {
       types: ['string'],
-      help: 'Y axis title',
+      help: 'Y left axis title',
+    },
+    yRightTitle: {
+      types: ['string'],
+      help: 'Y right axis title',
     },
     legend: {
       types: ['lens_xy_legendConfig'],
@@ -124,6 +128,12 @@ export const xyChart: ExpressionFunctionDefinition<
       types: ['boolean'],
       help: i18n.translate('xpack.lens.xyChart.showYLeftAxisTitle.help', {
         defaultMessage: 'Show y left axis title',
+      }),
+    },
+    showYRightAxisTitle: {
+      types: ['boolean'],
+      help: i18n.translate('xpack.lens.xyChart.showYRightAxisTitle.help', {
+        defaultMessage: 'Show y right axis title',
       }),
     },
     layers: {
@@ -264,6 +274,7 @@ export function XYChart({
   const xTitle = args.xTitle || (xAxisColumn && xAxisColumn.name);
   const showXAxisTitle = args.showXAxisTitle ?? true;
   const showYLeftAxisTitle = args.showYLeftAxisTitle ?? true;
+  const showYRightAxisTitle = args.showYRightAxisTitle ?? true;
   const tickLabelsVisibilitySettings = args.tickLabelsVisibilitySettings || { x: true, y: true };
 
   function calculateMinInterval() {
@@ -310,9 +321,12 @@ export function XYChart({
     axisSeries: Array<{ layer: string; accessor: string }>,
     index: number
   ) => {
-    if (index > 0 && args.yLeftTitle) return;
+    // piece of shit - fix this
+    if (index > 0 && !showYRightAxisTitle) return;
+    if (index === 0 && !showYLeftAxisTitle) return;
+    const yTitle = index > 0 ? args.yRightTitle : args.yLeftTitle;
     return (
-      args.yLeftTitle ||
+      yTitle ||
       axisSeries
         .map(
           (series) =>
@@ -433,7 +447,7 @@ export function XYChart({
           id={axis.groupId}
           groupId={axis.groupId}
           position={axis.position}
-          title={showYLeftAxisTitle ? getYAxesTitles(axis.series, index) : undefined}
+          title={getYAxesTitles(axis.series, index)}
           showGridLines={gridlinesVisibilitySettings?.y}
           hide={filteredLayers[0].hide}
           tickFormat={tickLabelsVisibilitySettings?.y ? (d) => axis.formatter.convert(d) : () => ''}

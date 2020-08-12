@@ -95,6 +95,7 @@ export const buildExpression = (
         arguments: {
           xTitle: [state.xTitle || ''],
           yLeftTitle: [state.yLeftTitle || ''],
+          yRightTitle: [state.yRightTitle || ''],
           legend: [
             {
               type: 'expression',
@@ -116,6 +117,7 @@ export const buildExpression = (
           fittingFunction: [state.fittingFunction || 'None'],
           showXAxisTitle: [state.showXAxisTitle ?? true],
           showYLeftAxisTitle: [state.showYLeftAxisTitle ?? true],
+          showYRightAxisTitle: [state.showYRightAxisTitle ?? true],
           tickLabelsVisibilitySettings: [
             {
               type: 'expression',

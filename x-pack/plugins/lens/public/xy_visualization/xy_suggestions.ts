@@ -409,8 +409,10 @@ function buildSuggestion({
     fittingFunction: currentState?.fittingFunction || 'None',
     xTitle: currentState?.xTitle,
     yLeftTitle: currentState?.yLeftTitle,
+    yRightTitle: currentState?.yRightTitle,
     showXAxisTitle: currentState?.showXAxisTitle ?? true,
     showYLeftAxisTitle: currentState?.showYLeftAxisTitle ?? true,
+    showYRightAxisTitle: currentState?.showYRightAxisTitle ?? true,
     tickLabelsVisibilitySettings: currentState?.tickLabelsVisibilitySettings || {
       x: true,
       y: true,
