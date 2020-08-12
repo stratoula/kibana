@@ -314,12 +314,12 @@ export type LayerArgs = LayerConfig & {
 // Arguments to XY chart expression, with computed properties
 export interface XYArgs {
   xTitle: string;
-  yTitle: string;
+  yLeftTitle: string;
   legend: LegendConfig & { type: 'lens_xy_legendConfig' };
   layers: LayerArgs[];
   fittingFunction?: FittingFunction;
   showXAxisTitle?: boolean;
-  showYAxisTitle?: boolean;
+  showYLeftAxisTitle?: boolean;
   tickLabelsVisibilitySettings?: AxesSettingsConfig & { type: 'lens_xy_tickLabelsConfig' };
   gridlinesVisibilitySettings?: AxesSettingsConfig & { type: 'lens_xy_gridlinesConfig' };
 }
@@ -331,9 +331,9 @@ export interface XYState {
   fittingFunction?: FittingFunction;
   layers: LayerConfig[];
   xTitle?: string;
-  yTitle?: string;
+  yLeftTitle?: string;
   showXAxisTitle?: boolean;
-  showYAxisTitle?: boolean;
+  showYLeftAxisTitle?: boolean;
   tickLabelsVisibilitySettings?: AxesSettingsConfig;
   gridlinesVisibilitySettings?: AxesSettingsConfig;
 }

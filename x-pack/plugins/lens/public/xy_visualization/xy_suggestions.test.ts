@@ -446,7 +446,7 @@ describe('xy_suggestions', () => {
       legend: { isVisible: true, position: 'bottom' },
       fittingFunction: 'None',
       showXAxisTitle: true,
-      showYAxisTitle: true,
+      showYLeftAxisTitle: true,
       gridlinesVisibilitySettings: { x: true, y: true },
       tickLabelsVisibilitySettings: { x: true, y: false },
       preferredSeriesType: 'bar',
@@ -488,7 +488,7 @@ describe('xy_suggestions', () => {
       preferredSeriesType: 'bar',
       fittingFunction: 'None',
       showXAxisTitle: true,
-      showYAxisTitle: true,
+      showYLeftAxisTitle: true,
       gridlinesVisibilitySettings: { x: true, y: true },
       tickLabelsVisibilitySettings: { x: true, y: false },
       layers: [
@@ -601,7 +601,7 @@ describe('xy_suggestions', () => {
       preferredSeriesType: 'bar',
       fittingFunction: 'None',
       showXAxisTitle: true,
-      showYAxisTitle: true,
+      showYLeftAxisTitle: true,
       gridlinesVisibilitySettings: { x: true, y: true },
       tickLabelsVisibilitySettings: { x: true, y: false },
       layers: [
@@ -644,7 +644,7 @@ describe('xy_suggestions', () => {
       preferredSeriesType: 'bar',
       fittingFunction: 'None',
       showXAxisTitle: true,
-      showYAxisTitle: true,
+      showYLeftAxisTitle: true,
       gridlinesVisibilitySettings: { x: true, y: true },
       tickLabelsVisibilitySettings: { x: true, y: false },
       layers: [
@@ -688,7 +688,7 @@ describe('xy_suggestions', () => {
       preferredSeriesType: 'bar',
       fittingFunction: 'None',
       showXAxisTitle: true,
-      showYAxisTitle: true,
+      showYLeftAxisTitle: true,
       gridlinesVisibilitySettings: { x: true, y: true },
       tickLabelsVisibilitySettings: { x: true, y: false },
       layers: [

@@ -144,12 +144,12 @@ export function XyToolbar(props: VisualizationToolbarProps<State>) {
   );
 
   const [xAxisTitle, setXAxisTitle] = useState(state?.xTitle);
-  const [yLeftAxisTitle, setYLeftAxisTitle] = useState(state?.yTitle);
+  const [yLeftAxisTitle, setYLeftAxisTitle] = useState(state?.yLeftTitle);
 
   const xyTitles = useCallback(() => {
     const defaults = {
       xTitle: xAxisTitle,
-      yTitle: yLeftAxisTitle,
+      yLeftTitle: yLeftAxisTitle,
     };
     const layer = state?.layers[0];
     if (!layer || !layer.accessors.length) {
@@ -164,7 +164,7 @@ export function XyToolbar(props: VisualizationToolbarProps<State>) {
 
     return {
       xTitle: defaults.xTitle || x?.label,
-      yTitle: defaults.yTitle || y?.label,
+      yLeftTitle: defaults.yLeftTitle || y?.label,
     };
     /* We want this callback to run only if open changes its state. What we want to accomplish here is to give the user a better UX.
        By default these input fields have the axis legends. If the user changes the input text, the axis legends should also change.
@@ -176,10 +176,10 @@ export function XyToolbar(props: VisualizationToolbarProps<State>) {
   useEffect(() => {
     const {
       xTitle,
-      yTitle,
-    }: { xTitle: string | undefined; yTitle: string | undefined } = xyTitles();
+      yLeftTitle,
+    }: { xTitle: string | undefined; yLeftTitle: string | undefined } = xyTitles();
     setXAxisTitle(xTitle);
-    setYLeftAxisTitle(yTitle);
+    setYLeftAxisTitle(yLeftTitle);
   }, [xyTitles]);
 
   const onXTitleChange = (value: string): void => {
@@ -189,7 +189,7 @@ export function XyToolbar(props: VisualizationToolbarProps<State>) {
 
   const onYTitleChange = (value: string): void => {
     setYLeftAxisTitle(value);
-    setState({ ...state, yTitle: value });
+    setState({ ...state, yLeftTitle: value });
   };
 
   type AxesSettingsConfigKeys = keyof AxesSettingsConfig;
@@ -444,19 +444,19 @@ export function XyToolbar(props: VisualizationToolbarProps<State>) {
             display="columnCompressed"
             label={
               <EuiFlexGroup gutterSize="s">
-                <EuiFlexItem grow={false}>Y-axis</EuiFlexItem>
+                <EuiFlexItem grow={false}>Left Y-axis</EuiFlexItem>
                 <EuiFlexItem>
                   <EuiSwitch
                     compressed
-                    data-test-subj="lnsShowYAxisTitleSwitch"
+                    data-test-subj="lnsShowYLeftAxisTitleSwitch"
                     showLabel={false}
-                    label={i18n.translate('xpack.lens.xyChart.ShowYAxisTitleLabel', {
-                      defaultMessage: 'Show Y-axis Title',
+                    label={i18n.translate('xpack.lens.xyChart.ShowYLeftAxisTitleLabel', {
+                      defaultMessage: 'Show Left Y-axis Title',
                     })}
                     onChange={({ target }) =>
-                      setState({ ...state, showYAxisTitle: target.checked })
+                      setState({ ...state, showYLeftAxisTitle: target.checked })
                     }
-                    checked={state?.showYAxisTitle ?? true}
+                    checked={state?.showYLeftAxisTitle ?? true}
                   />
                 </EuiFlexItem>
               </EuiFlexGroup>
@@ -466,10 +466,10 @@ export function XyToolbar(props: VisualizationToolbarProps<State>) {
               data-test-subj="lnsYAxisTitle"
               compressed
               placeholder={i18n.translate('xpack.lens.xyChart.overwriteYaxis', {
-                defaultMessage: 'Overwrite Y-axis title',
+                defaultMessage: 'Overwrite Left Y-axis title',
               })}
               value={yLeftAxisTitle || ''}
-              disabled={state && 'showYAxisTitle' in state ? !state.showYAxisTitle : false}
+              disabled={state && 'showYLeftAxisTitle' in state ? !state.showYLeftAxisTitle : false}
               onChange={({ target }) => onYTitleChange(target.value)}
               aria-label={i18n.translate('xpack.lens.xyChart.overwriteLeftYaxis', {
                 defaultMessage: 'Overwrite Left Y-axis title',

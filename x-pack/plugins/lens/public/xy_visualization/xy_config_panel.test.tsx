@@ -136,7 +136,7 @@ describe('XY Config panels', () => {
           state={{
             ...state,
             xTitle: 'My custom X axis title',
-            yTitle: 'My custom Y axis title',
+            yLeftTitle: 'My custom Y axis title',
           }}
         />
       );
@@ -158,7 +158,7 @@ describe('XY Config panels', () => {
           state={{
             ...state,
             showXAxisTitle: false,
-            showYAxisTitle: false,
+            showYLeftAxisTitle: false,
           }}
         />
       );

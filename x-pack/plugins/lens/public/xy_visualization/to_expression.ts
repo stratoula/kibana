@@ -94,7 +94,7 @@ export const buildExpression = (
         function: 'lens_xy_chart',
         arguments: {
           xTitle: [state.xTitle || ''],
-          yTitle: [state.yTitle || ''],
+          yLeftTitle: [state.yLeftTitle || ''],
           legend: [
             {
               type: 'expression',
@@ -115,7 +115,7 @@ export const buildExpression = (
           ],
           fittingFunction: [state.fittingFunction || 'None'],
           showXAxisTitle: [state.showXAxisTitle ?? true],
-          showYAxisTitle: [state.showYAxisTitle ?? true],
+          showYLeftAxisTitle: [state.showYLeftAxisTitle ?? true],
           tickLabelsVisibilitySettings: [
             {
               type: 'expression',

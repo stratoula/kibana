@@ -408,9 +408,9 @@ function buildSuggestion({
     legend: currentState ? currentState.legend : { isVisible: true, position: Position.Right },
     fittingFunction: currentState?.fittingFunction || 'None',
     xTitle: currentState?.xTitle,
-    yTitle: currentState?.yTitle,
+    yLeftTitle: currentState?.yLeftTitle,
     showXAxisTitle: currentState?.showXAxisTitle ?? true,
-    showYAxisTitle: currentState?.showYAxisTitle ?? true,
+    showYLeftAxisTitle: currentState?.showYLeftAxisTitle ?? true,
     tickLabelsVisibilitySettings: currentState?.tickLabelsVisibilitySettings || {
       x: true,
       y: true,

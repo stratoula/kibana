@@ -85,7 +85,7 @@ export const xyChart: ExpressionFunctionDefinition<
       types: ['string'],
       help: 'X axis title',
     },
-    yTitle: {
+    yLeftTitle: {
       types: ['string'],
       help: 'Y axis title',
     },
@@ -120,10 +120,10 @@ export const xyChart: ExpressionFunctionDefinition<
         defaultMessage: 'Show x axis title',
       }),
     },
-    showYAxisTitle: {
+    showYLeftAxisTitle: {
       types: ['boolean'],
-      help: i18n.translate('xpack.lens.xyChart.showYAxisTitle.help', {
-        defaultMessage: 'Show y axis title',
+      help: i18n.translate('xpack.lens.xyChart.showYLeftAxisTitle.help', {
+        defaultMessage: 'Show y left axis title',
       }),
     },
     layers: {
@@ -263,7 +263,7 @@ export function XYChart({
 
   const xTitle = args.xTitle || (xAxisColumn && xAxisColumn.name);
   const showXAxisTitle = args.showXAxisTitle ?? true;
-  const showYAxisTitle = args.showYAxisTitle ?? true;
+  const showYLeftAxisTitle = args.showYLeftAxisTitle ?? true;
   const tickLabelsVisibilitySettings = args.tickLabelsVisibilitySettings || { x: true, y: true };
 
   function calculateMinInterval() {
@@ -310,9 +310,9 @@ export function XYChart({
     axisSeries: Array<{ layer: string; accessor: string }>,
     index: number
   ) => {
-    if (index > 0 && args.yTitle) return;
+    if (index > 0 && args.yLeftTitle) return;
     return (
-      args.yTitle ||
+      args.yLeftTitle ||
       axisSeries
         .map(
           (series) =>
@@ -433,7 +433,7 @@ export function XYChart({
           id={axis.groupId}
           groupId={axis.groupId}
           position={axis.position}
-          title={showYAxisTitle ? getYAxesTitles(axis.series, index) : undefined}
+          title={showYLeftAxisTitle ? getYAxesTitles(axis.series, index) : undefined}
           showGridLines={gridlinesVisibilitySettings?.y}
           hide={filteredLayers[0].hide}
           tickFormat={tickLabelsVisibilitySettings?.y ? (d) => axis.formatter.convert(d) : () => ''}

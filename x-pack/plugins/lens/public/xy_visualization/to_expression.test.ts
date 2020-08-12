@@ -79,7 +79,7 @@ describe('#toExpression', () => {
     ).toEqual('None');
   });
 
-  it('should default the showXAxisTitle and showYAxisTitle to true', () => {
+  it('should default the showXAxisTitle and showYLeftAxisTitle to true', () => {
     const expression = xyVisualization.toExpression(
       {
         legend: { position: Position.Bottom, isVisible: true },
@@ -97,7 +97,7 @@ describe('#toExpression', () => {
       frame
     ) as Ast;
     expect(expression.chain[0].arguments.showXAxisTitle[0]).toBe(true);
-    expect(expression.chain[0].arguments.showYAxisTitle[0]).toBe(true);
+    expect(expression.chain[0].arguments.showYLeftAxisTitle[0]).toBe(true);
   });
 
   it('should not generate an expression when missing x', () => {
@@ -164,7 +164,7 @@ describe('#toExpression', () => {
     expect(mockDatasource.publicAPIMock.getOperationForColumnId).toHaveBeenCalledWith('c');
     expect(mockDatasource.publicAPIMock.getOperationForColumnId).toHaveBeenCalledWith('d');
     expect(expression.chain[0].arguments.xTitle).toEqual(['']);
-    expect(expression.chain[0].arguments.yTitle).toEqual(['']);
+    expect(expression.chain[0].arguments.yLeftTitle).toEqual(['']);
     expect(
       (expression.chain[0].arguments.layers[0] as Ast).chain[0].arguments.columnToLabel
     ).toEqual([
