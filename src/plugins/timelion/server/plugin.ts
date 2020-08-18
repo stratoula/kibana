@@ -17,13 +17,16 @@
  * under the License.
  */
 
-import { CoreSetup, Plugin, PluginInitializerContext } from 'src/core/server';
+import { CoreSetup, CoreStart, Logger, Plugin, PluginInitializerContext } from 'src/core/server';
 import { i18n } from '@kbn/i18n';
 import { schema } from '@kbn/config-schema';
 import { TimelionConfigType } from './config';
 
 export class TimelionPlugin implements Plugin {
-  constructor(context: PluginInitializerContext<TimelionConfigType>) {}
+  constructor(context: PluginInitializerContext<TimelionConfigType>) {
+    this.logger = context.logger.get();
+  }
+  private readonly logger: Logger;
 
   public setup(core: CoreSetup) {
     core.capabilities.registerProvider(() => ({
@@ -92,6 +95,11 @@ export class TimelionPlugin implements Plugin {
       },
     });
   }
-  start() {}
+  start(core: CoreStart) {
+    // const savedObjects = core.savedObjects.;
+    this.logger.warn(
+      'Timelion App is going to be removed, please move your worksheets to a dashboard'
+    );
+  }
   stop() {}
 }
