@@ -171,13 +171,13 @@ class TypeSelection extends React.Component<TypeSelectionProps, TypeSelectionSta
     visTypes: TypesStart,
     query: string
   ): Array<VisTypeListEntry | VisTypeAliasListEntry> {
-    const types = visTypes.all().filter((type) => {
+    const types = visTypes.getByGroup('aggbased').filter((type) => {
       // Filter out all lab visualizations if lab mode is not enabled
       if (!this.props.showExperimental && type.stage === 'experimental') {
         return false;
       }
 
-      // Filter out hidden visualizations
+      // Filter out hidden visualizations and visualizations that are only aggregations based
       if (type.hidden) {
         return false;
       }
@@ -185,14 +185,12 @@ class TypeSelection extends React.Component<TypeSelectionProps, TypeSelectionSta
       return true;
     });
 
-    const allTypes = [...types, ...visTypes.getAliases()];
-
     let entries: Array<VisTypeListEntry | VisTypeAliasListEntry>;
     if (!query) {
-      entries = allTypes.map((type) => ({ ...type, highlighted: false }));
+      entries = types.map((type) => ({ ...type, highlighted: false }));
     } else {
       const q = query.toLowerCase();
-      entries = allTypes.map((type) => {
+      entries = types.map((type) => {
         const matchesQuery =
           type.name.toLowerCase().includes(q) ||
           type.title.toLowerCase().includes(q) ||

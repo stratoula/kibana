@@ -34,6 +34,7 @@ export const metricsVisDefinition = {
     defaultMessage: 'Build time-series using a visual pipeline interface',
   }),
   icon: 'visVisualBuilder',
+  group: 'other',
   visConfig: {
     defaults: {
       id: '61ca57f0-469d-11e7-af02-69e470af7417',

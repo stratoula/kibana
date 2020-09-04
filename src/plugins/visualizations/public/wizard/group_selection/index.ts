@@ -17,25 +17,4 @@
  * under the License.
  */
 
-import { EuiIcon, IconType } from '@elastic/eui';
-import React from 'react';
-
-interface VisTypeIconProps {
-  icon?: IconType;
-  image?: string;
-}
-
-/**
- * This renders the icon for a specific visualization type.
- * This currently checks the following:
- * - If image is set, use that as the `src` of an image
- * - Otherwise use the icon as an EuiIcon or the 'empty' icon if that's not set
- */
-export const VisTypeIcon = ({ icon, image }: VisTypeIconProps) => {
-  return (
-    <React.Fragment>
-      {image && <img src={image} alt="" className="visNewVisDialog__typeImage" />}
-      {!image && <EuiIcon type={icon || 'empty'} size="xl" color="secondary" />}
-    </React.Fragment>
-  );
-};
+export { GroupSelection } from './group_selection';

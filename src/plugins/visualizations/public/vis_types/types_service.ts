@@ -117,6 +117,15 @@ export class TypesService {
         return this.types[visualization];
       },
       /**
+       * returns all visualizations of specific group
+       * @param {string} group - group type (aggbased | other | tools)
+       */
+      getByGroup: (group: string) => {
+        return [...Object.values(this.types)].filter((type) => {
+          return type.group === group;
+        });
+      },
+      /**
        * returns all registered visualization types
        */
       all: () => {

@@ -26,6 +26,7 @@ import { METRIC_TYPE, UiStatsMetricType } from '@kbn/analytics';
 import { ApplicationStart, IUiSettingsClient, SavedObjectsStart } from '../../../../core/public';
 import { SearchSelection } from './search_selection';
 import { TypeSelection } from './type_selection';
+import { GroupSelection } from './group_selection';
 import { TypesStart, VisType, VisTypeAlias } from '../vis_types';
 import { UsageCollectionSetup } from '../../../../plugins/usage_collection/public';
 import { EmbeddableStateTransfer } from '../../../embeddable/public';
@@ -104,13 +105,8 @@ class NewVisModal extends React.Component<TypeSelectionProps, TypeSelectionState
           />
         </EuiModal>
       ) : (
-        <EuiModal
-          onClose={this.onCloseModal}
-          className="visNewVisDialog"
-          aria-label={visNewVisDialogAriaLabel}
-          role="menu"
-        >
-          <TypeSelection
+        <EuiModal onClose={this.onCloseModal} aria-label={visNewVisDialogAriaLabel} role="menu">
+          <GroupSelection
             showExperimental={this.isLabsEnabled}
             onVisTypeSelected={this.onVisTypeSelected}
             visTypesRegistry={this.props.visTypesRegistry}
