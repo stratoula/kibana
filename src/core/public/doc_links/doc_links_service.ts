@@ -38,6 +38,7 @@ export class DocLinksService {
       links: {
         dashboard: {
           drilldowns: `${ELASTIC_WEBSITE_URL}guide/en/kibana/${DOC_LINK_VERSION}/drilldowns.html`,
+          guide: `${ELASTIC_WEBSITE_URL}guide/en/kibana/${DOC_LINK_VERSION}/dashboard.html`,
         },
         filebeat: {
           base: `${ELASTIC_WEBSITE_URL}guide/en/beats/filebeat/${DOC_LINK_VERSION}`,
@@ -128,7 +129,6 @@ export class DocLinksService {
           dashboardSettings: `${ELASTIC_WEBSITE_URL}guide/en/kibana/${DOC_LINK_VERSION}/advanced-options.html#kibana-dashboard-settings`,
         },
         visualize: {
-          guide: `${ELASTIC_WEBSITE_URL}guide/en/kibana/${DOC_LINK_VERSION}/visualize.html`,
           timelionDeprecation: `${ELASTIC_WEBSITE_URL}guide/en/kibana/${DOC_LINK_VERSION}/timelion.html#timelion-deprecation`,
         },
       },
@@ -143,6 +143,7 @@ export interface DocLinksStart {
   readonly links: {
     readonly dashboard: {
       readonly drilldowns: string;
+      readonly guide: string;
     };
     readonly filebeat: {
       readonly base: string;

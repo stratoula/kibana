@@ -52,7 +52,7 @@ interface VisCardProps {
 
 function GroupSelection(props: GroupSelectionProps) {
   const [showGroups, setShowGroups] = useState(true);
-  const visualizeGuideLink = props.docLinks.links.visualize.guide;
+  const visualizeGuideLink = props.docLinks.links.dashboard.guide;
   return (
     <>
       <EuiModalHeader>
