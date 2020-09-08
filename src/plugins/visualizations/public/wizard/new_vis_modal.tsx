@@ -23,9 +23,13 @@ import { EuiModal, EuiOverlayMask } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
 
 import { METRIC_TYPE, UiStatsMetricType } from '@kbn/analytics';
-import { ApplicationStart, IUiSettingsClient, SavedObjectsStart } from '../../../../core/public';
+import {
+  ApplicationStart,
+  IUiSettingsClient,
+  SavedObjectsStart,
+  DocLinksStart,
+} from '../../../../core/public';
 import { SearchSelection } from './search_selection';
-import { TypeSelection } from './type_selection';
 import { GroupSelection } from './group_selection';
 import { TypesStart, VisType, VisTypeAlias } from '../vis_types';
 import { UsageCollectionSetup } from '../../../../plugins/usage_collection/public';
@@ -39,6 +43,7 @@ interface TypeSelectionProps {
   editorParams?: string[];
   addBasePath: (path: string) => string;
   uiSettings: IUiSettingsClient;
+  docLinks: DocLinksStart;
   savedObjects: SavedObjectsStart;
   usageCollection?: UsageCollectionSetup;
   application: ApplicationStart;
@@ -105,12 +110,18 @@ class NewVisModal extends React.Component<TypeSelectionProps, TypeSelectionState
           />
         </EuiModal>
       ) : (
-        <EuiModal onClose={this.onCloseModal} aria-label={visNewVisDialogAriaLabel} role="menu">
+        <EuiModal
+          onClose={this.onCloseModal}
+          aria-label={visNewVisDialogAriaLabel}
+          role="menu"
+          className="visNewVisDialog"
+        >
           <GroupSelection
             showExperimental={this.isLabsEnabled}
             onVisTypeSelected={this.onVisTypeSelected}
             visTypesRegistry={this.props.visTypesRegistry}
             addBasePath={this.props.addBasePath}
+            docLinks={this.props.docLinks}
           />
         </EuiModal>
       );

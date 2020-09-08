@@ -30,6 +30,7 @@ import {
   getUsageCollector,
   getApplication,
   getEmbeddable,
+  getDocLinks,
 } from '../services';
 
 export interface ShowNewVisModalParams {
@@ -78,6 +79,7 @@ export function showNewVisModal({
         savedObjects={getSavedObjects()}
         usageCollection={getUsageCollector()}
         application={getApplication()}
+        docLinks={getDocLinks()}
       />
     </I18nProvider>
   );
