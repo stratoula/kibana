@@ -35,7 +35,7 @@ export const VisTypeIcon = ({ icon, image }: VisTypeIconProps) => {
   return (
     <React.Fragment>
       {image && <img src={image} alt="" className="visNewVisDialog__typeImage" />}
-      {!image && <EuiIcon type={icon || 'empty'} size="xl" color="secondary" />}
+      {!image && <EuiIcon type={icon || 'empty'} size="l" color="secondary" />}
     </React.Fragment>
   );
 };

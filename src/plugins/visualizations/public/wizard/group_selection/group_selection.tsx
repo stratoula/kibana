@@ -35,7 +35,7 @@ import {
 import { DocLinksStart } from '../../../../../core/public';
 import { VisTypeAlias } from '../../vis_types/vis_type_alias_registry';
 import { VisType, TypesStart } from '../../vis_types';
-import { TypeSelection } from '../type_selection';
+import { AggBasedSelection } from './agg_based_selection';
 
 interface GroupSelectionProps {
   addBasePath: (path: string) => string;
@@ -137,7 +137,7 @@ function GroupSelection(props: GroupSelectionProps) {
           </>
         )}
         {!showGroups && (
-          <TypeSelection
+          <AggBasedSelection
             showExperimental={props.showExperimental}
             onVisTypeSelected={props.onVisTypeSelected}
             visTypesRegistry={props.visTypesRegistry}

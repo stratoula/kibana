@@ -30,11 +30,15 @@ import {
   DocLinksStart,
 } from '../../../../core/public';
 import { SearchSelection } from './search_selection';
+import { TypeSelection } from './type_selection';
 import { GroupSelection } from './group_selection';
 import { TypesStart, VisType, VisTypeAlias } from '../vis_types';
 import { UsageCollectionSetup } from '../../../../plugins/usage_collection/public';
 import { EmbeddableStateTransfer } from '../../../embeddable/public';
-import { VISUALIZE_ENABLE_LABS_SETTING } from '../../common/constants';
+import {
+  VISUALIZE_ENABLE_LABS_SETTING,
+  VISUALIZE_ENABLE_LEGACY_WIZARD,
+} from '../../common/constants';
 
 interface TypeSelectionProps {
   isOpen: boolean;
@@ -68,6 +72,7 @@ class NewVisModal extends React.Component<TypeSelectionProps, TypeSelectionState
   };
 
   private readonly isLabsEnabled: boolean;
+  private readonly isLegacyWizardEnabled: boolean;
   private readonly trackUiMetric:
     | ((type: UiStatsMetricType, eventNames: string | string[], count?: number) => void)
     | undefined;
@@ -75,6 +80,7 @@ class NewVisModal extends React.Component<TypeSelectionProps, TypeSelectionState
   constructor(props: TypeSelectionProps) {
     super(props);
     this.isLabsEnabled = props.uiSettings.get(VISUALIZE_ENABLE_LABS_SETTING);
+    this.isLegacyWizardEnabled = props.uiSettings.get(VISUALIZE_ENABLE_LEGACY_WIZARD);
 
     this.state = {
       showSearchVisModal: false,
@@ -99,6 +105,8 @@ class NewVisModal extends React.Component<TypeSelectionProps, TypeSelectionState
       }
     );
 
+    const WizardComponent = this.isLegacyWizardEnabled ? TypeSelection : GroupSelection;
+
     const selectionModal =
       this.state.showSearchVisModal && this.state.visType ? (
         <EuiModal onClose={this.onCloseModal} className="visNewVisSearchDialog">
@@ -116,7 +124,7 @@ class NewVisModal extends React.Component<TypeSelectionProps, TypeSelectionState
           role="menu"
           className="visNewVisDialog"
         >
-          <GroupSelection
+          <WizardComponent
             showExperimental={this.isLabsEnabled}
             onVisTypeSelected={this.onVisTypeSelected}
             visTypesRegistry={this.props.visTypesRegistry}

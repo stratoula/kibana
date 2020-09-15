@@ -29,7 +29,7 @@ import {
   Logger,
 } from '../../../core/server';
 
-import { VISUALIZE_ENABLE_LABS_SETTING } from '../common/constants';
+import { VISUALIZE_ENABLE_LABS_SETTING, VISUALIZE_ENABLE_LEGACY_WIZARD } from '../common/constants';
 
 import { visualizationSavedObjectType } from './saved_objects';
 
@@ -61,6 +61,20 @@ export class VisualizationsPlugin
           defaultMessage: `Allows users to create, view, and edit experimental visualizations. If disabled,
             only visualizations that are considered production-ready are available to the user.`,
         }),
+        category: ['visualization'],
+        schema: schema.boolean(),
+      },
+      [VISUALIZE_ENABLE_LEGACY_WIZARD]: {
+        name: i18n.translate('visualizations.advancedSettings.visualizeEnableLegacyWizardTitle', {
+          defaultMessage: 'Enable legacy wizard',
+        }),
+        value: false,
+        description: i18n.translate(
+          'visualizations.advancedSettings.visualizeEnableLegacyWizardText',
+          {
+            defaultMessage: `If enabled, allows the user to use the legacy wizard to choose the visualization to create.`,
+          }
+        ),
         category: ['visualization'],
         schema: schema.boolean(),
       },

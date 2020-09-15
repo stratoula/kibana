@@ -18,3 +18,4 @@
  */
 
 export { GroupSelection } from './group_selection';
+export { AggBasedSelection } from './agg_based_selection';
