@@ -115,6 +115,11 @@ class NewVisModal extends React.Component<TypeSelectionProps, TypeSelectionState
             visType={this.state.visType}
             uiSettings={this.props.uiSettings}
             savedObjects={this.props.savedObjects}
+            returnToInitialStep={
+              !this.isLegacyWizardEnabled
+                ? () => this.setState({ showSearchVisModal: false })
+                : undefined
+            }
           />
         </EuiModal>
       ) : (
@@ -122,7 +127,7 @@ class NewVisModal extends React.Component<TypeSelectionProps, TypeSelectionState
           onClose={this.onCloseModal}
           aria-label={visNewVisDialogAriaLabel}
           role="menu"
-          className="visNewVisDialog"
+          className={this.isLegacyWizardEnabled ? 'visNewVisDialog__legacy' : 'visNewVisDialog'}
         >
           <WizardComponent
             showExperimental={this.isLabsEnabled}

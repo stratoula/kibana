@@ -69,7 +69,16 @@ class AggBasedSelection extends React.Component<AggBasedSelectionProps, AggBased
     return (
       <React.Fragment>
         <EuiLink onClick={() => this.props.goBack()}>
-          <EuiIcon type="arrowLeft" /> Go back
+          <EuiFlexGroup alignItems="center" gutterSize="s">
+            <EuiFlexItem grow={false}>
+              <EuiIcon type="arrowLeft" />
+            </EuiFlexItem>
+            <EuiFlexItem>
+              {i18n.translate('visualizations.newVisWizard.goBackLink', {
+                defaultMessage: 'Go Back',
+              })}
+            </EuiFlexItem>
+          </EuiFlexGroup>
         </EuiLink>
         <EuiSpacer />
         <EuiFieldSearch
@@ -170,7 +179,7 @@ class AggBasedSelection extends React.Component<AggBasedSelectionProps, AggBased
     const onClick = () => this.props.onVisTypeSelected(visType);
 
     return (
-      <EuiFlexItem key={visType.name}>
+      <EuiFlexItem key={visType.name} grow={false}>
         <EuiCard
           className="visNewVisDialog__card"
           titleSize="xs"

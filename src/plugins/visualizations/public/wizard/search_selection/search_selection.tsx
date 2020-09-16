@@ -17,7 +17,16 @@
  * under the License.
  */
 
-import { EuiModalBody, EuiModalHeader, EuiModalHeaderTitle } from '@elastic/eui';
+import {
+  EuiModalBody,
+  EuiModalHeader,
+  EuiModalHeaderTitle,
+  EuiLink,
+  EuiIcon,
+  EuiSpacer,
+  EuiFlexGroup,
+  EuiFlexItem,
+} from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
 import { FormattedMessage } from '@kbn/i18n/react';
 import React from 'react';
@@ -31,8 +40,8 @@ interface SearchSelectionProps {
   visType: VisType;
   uiSettings: IUiSettingsClient;
   savedObjects: SavedObjectsStart;
+  returnToInitialStep?: () => void;
 }
-
 export class SearchSelection extends React.Component<SearchSelectionProps> {
   private fixedPageSize: number = 8;
 
@@ -54,6 +63,23 @@ export class SearchSelection extends React.Component<SearchSelectionProps> {
           </EuiModalHeaderTitle>
         </EuiModalHeader>
         <EuiModalBody>
+          {this.props.returnToInitialStep && (
+            <>
+              <EuiLink onClick={() => this.props.returnToInitialStep?.()}>
+                <EuiFlexGroup alignItems="center" gutterSize="s">
+                  <EuiFlexItem grow={false}>
+                    <EuiIcon type="arrowLeft" />
+                  </EuiFlexItem>
+                  <EuiFlexItem>
+                    {i18n.translate('visualizations.newVisWizard.goBackLink', {
+                      defaultMessage: 'Go Back',
+                    })}
+                  </EuiFlexItem>
+                </EuiFlexGroup>
+              </EuiLink>
+              <EuiSpacer />
+            </>
+          )}
           <SavedObjectFinderUi
             key="searchSavedObjectFinder"
             onChoose={this.props.onSearchSelected}
