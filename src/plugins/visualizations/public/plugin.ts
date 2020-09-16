@@ -77,6 +77,7 @@ import {
   convertToSerializedVis,
 } from './saved_visualizations/_saved_vis';
 import { createSavedSearchesLoader } from '../../discover/public';
+import { DashboardStart } from '../../dashboard/public';
 
 /**
  * Interface for this plugin's returned setup/start contracts.
@@ -110,6 +111,8 @@ export interface VisualizationsStartDeps {
   inspector: InspectorStart;
   uiActions: UiActionsStart;
   application: ApplicationStart;
+  dashboard: DashboardStart;
+  getAttributeService: DashboardStart['getAttributeService'];
 }
 
 /**
@@ -156,7 +159,7 @@ export class VisualizationsPlugin
 
   public start(
     core: CoreStart,
-    { data, expressions, uiActions, embeddable }: VisualizationsStartDeps
+    { data, expressions, uiActions, embeddable, dashboard }: VisualizationsStartDeps
   ): VisualizationsStart {
     const types = this.types.start();
     setI18n(core.i18n);
