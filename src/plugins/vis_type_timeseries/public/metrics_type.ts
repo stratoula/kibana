@@ -35,6 +35,10 @@ export const metricsVisDefinition = {
   }),
   icon: 'visVisualBuilder',
   group: 'other',
+  groupDescription: i18n.translate('visTypeTimeseries.kbnVisTypes.metricsGroupDescription', {
+    defaultMessage:
+      'Advanced time series editor that allows user to use complex calculations and add annotations.',
+  }),
   visConfig: {
     defaults: {
       id: '61ca57f0-469d-11e7-af02-69e470af7417',

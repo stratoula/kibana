@@ -42,6 +42,10 @@ export const createVegaTypeDefinition = (dependencies: VegaVisualizationDependen
     }),
     icon: 'visVega',
     group: 'other',
+    groupDescription: i18n.translate('visTypeVega.type.vegaGroupDescription', {
+      defaultMessage:
+        'Use Vega library to develop new types of visualizations. Requires knowledge of Vega and programming.',
+    }),
     visConfig: { defaults: { spec: getDefaultSpec() } },
     editorConfig: {
       optionsTemplate: VegaVisEditor,

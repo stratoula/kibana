@@ -161,7 +161,7 @@ const VisGroup = ({ visType, onVisTypeSelected }: VisCardProps) => {
         data-test-subj={`visType-${visType.name}`}
         data-vis-stage={!('aliasPath' in visType) ? visType.stage : 'alias'}
         aria-describedby={`visTypeDescription-${visType.name}`}
-        description={visType.description || ''}
+        description={visType.groupDescription || ''}
         layout="horizontal"
         icon={<EuiIcon type={visType.icon || 'empty'} size="xl" color="secondary" />}
       />

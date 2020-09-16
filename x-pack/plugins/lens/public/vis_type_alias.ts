@@ -26,6 +26,10 @@ export const getLensAliasConfig = (): VisTypeAlias => ({
   description: i18n.translate('xpack.lens.visTypeAlias.description', {
     defaultMessage: `Lens is a simpler way to create basic visualizations`,
   }),
+  groupDescription: i18n.translate('xpack.lens.visTypeAlias.groupDescription', {
+    defaultMessage:
+      'Drag and drop intuitive way to create multiple types of visualizations. Best option for most visualizations.',
+  }),
   icon: 'lensApp',
   stage: 'production',
   appExtensions: {

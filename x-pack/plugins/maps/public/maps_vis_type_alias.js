@@ -16,6 +16,10 @@ export function getMapsVisTypeAlias(visualizations, showMapVisualizationTypes) {
     defaultMessage: 'Create and style maps with multiple layers and indices.',
   });
 
+  const groupDescription = i18n.translate('xpack.maps.visTypeAlias.groupDescription', {
+    defaultMessage: 'Create all map visualizations using your geo data.',
+  });
+
   const legacyMapVisualizationWarning = i18n.translate(
     'xpack.maps.visTypeAlias.legacyMapVizWarning',
     {
@@ -34,6 +38,7 @@ The Maps app offers more functionality and is easier to use.`,
     description: showMapVisualizationTypes
       ? `${description} ${legacyMapVisualizationWarning}`
       : description,
+    groupDescription,
     icon: APP_ICON,
     stage: 'production',
   };

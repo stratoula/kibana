@@ -29,6 +29,7 @@ export interface VisType {
   name: string;
   title: string;
   description?: string;
+  groupDescription?: string;
   getSupportedTriggers?: () => Array<keyof TriggerContextMapping>;
   visualization: any;
   isAccessible?: boolean;
