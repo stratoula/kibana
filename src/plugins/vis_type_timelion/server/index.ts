@@ -21,8 +21,6 @@ import { PluginConfigDescriptor, PluginInitializerContext } from '../../../../sr
 import { configSchema, ConfigSchema } from '../config';
 import { Plugin } from './plugin';
 
-export { PluginSetupContract } from './plugin';
-
 export const config: PluginConfigDescriptor<ConfigSchema> = {
   schema: configSchema,
   exposeToBrowser: {

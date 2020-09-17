@@ -20,6 +20,8 @@ import { PluginInitializerContext, PluginConfigDescriptor } from 'src/core/serve
 import { TimelionPlugin } from './plugin';
 import { configSchema, ConfigSchema } from '../config';
 
+export { PluginSetupContract } from './plugin';
+
 export const config: PluginConfigDescriptor<ConfigSchema> = {
   schema: configSchema,
   exposeToBrowser: {

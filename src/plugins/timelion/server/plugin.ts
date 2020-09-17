@@ -17,10 +17,13 @@
  * under the License.
  */
 
-import { CoreSetup, CoreStart, Plugin, PluginInitializerContext, Logger } from 'src/core/server';
+import { CoreSetup, CoreStart, PluginInitializerContext, Logger } from 'src/core/server';
 import { i18n } from '@kbn/i18n';
-import { schema } from '@kbn/config-schema';
-import { ConfigSchema } from '../config';
+import { first } from 'rxjs/operators';
+import { deepFreeze } from '@kbn/std';
+import { RecursiveReadonly } from '@kbn/utility-types';
+import { schema, TypeOf } from '@kbn/config-schema';
+import { configSchema } from '../config';
 import { timelionSheetSavedObjectType } from './saved_objects';
 
 /**
@@ -47,14 +50,84 @@ const showWarningMessageIfTimelionSheetWasFound = (core: CoreStart, logger: Logg
     );
 };
 
-export class TimelionPlugin implements Plugin {
-  private logger: Logger;
+/**
+ * Describes public Timelion plugin contract returned at the `setup` stage.
+ */
+export interface PluginSetupContract {
+  uiEnabled: boolean;
+}
 
-  constructor(context: PluginInitializerContext<ConfigSchema>) {
-    this.logger = context.logger.get();
-  }
+// export class TimelionPlugin implements Plugin {
+//   context: PluginInitializerContext;
+//   private logger: Logger;
+//   private uiConfig: ConfigSchema['ui'];
 
-  public setup(core: CoreSetup) {
+//   constructor(context: PluginInitializerContext<ConfigSchema>) {
+//     this.context = context;
+//     this.logger = context.logger.get();
+//     const { ui } = context.config.get<ConfigSchema>();
+//     this.uiConfig = ui;
+//   }
+
+//   public setup(core: CoreSetup) {
+//     core.capabilities.registerProvider(() => ({
+//       timelion: {
+//         save: true,
+//       },
+//     }));
+//     core.savedObjects.registerType(timelionSheetSavedObjectType);
+
+//     core.uiSettings.register({
+//       'timelion:showTutorial': {
+//         name: i18n.translate('timelion.uiSettings.showTutorialLabel', {
+//           defaultMessage: 'Show tutorial',
+//         }),
+//         value: false,
+//         description: i18n.translate('timelion.uiSettings.showTutorialDescription', {
+//           defaultMessage: 'Should I show the tutorial by default when entering the timelion app?',
+//         }),
+//         category: ['timelion'],
+//         schema: schema.boolean(),
+//       },
+//       'timelion:default_columns': {
+//         name: i18n.translate('timelion.uiSettings.defaultColumnsLabel', {
+//           defaultMessage: 'Default columns',
+//         }),
+//         value: 2,
+//         description: i18n.translate('timelion.uiSettings.defaultColumnsDescription', {
+//           defaultMessage: 'Number of columns on a timelion sheet by default',
+//         }),
+//         category: ['timelion'],
+//         schema: schema.number(),
+//       },
+//       'timelion:default_rows': {
+//         name: i18n.translate('timelion.uiSettings.defaultRowsLabel', {
+//           defaultMessage: 'Default rows',
+//         }),
+//         value: 2,
+//         description: i18n.translate('timelion.uiSettings.defaultRowsDescription', {
+//           defaultMessage: 'Number of rows on a timelion sheet by default',
+//         }),
+//         category: ['timelion'],
+//         schema: schema.number(),
+//       },
+//     });
+//   }
+//   start(core: CoreStart) {
+//     showWarningMessageIfTimelionSheetWasFound(core, this.logger);
+//   }
+//   stop() {}
+// }
+
+export class TimelionPlugin {
+  constructor(private readonly initializerContext: PluginInitializerContext) {}
+
+  public async setup(core: CoreSetup): Promise<RecursiveReadonly<PluginSetupContract>> {
+    const config = await this.initializerContext.config
+      .create<TypeOf<typeof configSchema>>()
+      .pipe(first())
+      .toPromise();
+
     core.capabilities.registerProvider(() => ({
       timelion: {
         save: true,
@@ -97,9 +170,12 @@ export class TimelionPlugin implements Plugin {
         schema: schema.number(),
       },
     });
+    return deepFreeze({ uiEnabled: config.ui.enabled });
   }
-  start(core: CoreStart) {
-    showWarningMessageIfTimelionSheetWasFound(core, this.logger);
+
+  public start(core: CoreStart) {
+    showWarningMessageIfTimelionSheetWasFound(core, this.initializerContext.logger.get());
   }
-  stop() {}
+
+  public stop() {}
 }
