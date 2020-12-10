@@ -49,6 +49,10 @@ $modalHeight: $euiSizeL * 30;
     margin-top: - $euiSizeM;
   }
 
+  .visNewVisDialog__groupsCardLink .euiLink__externalIcon {
+    display: none;
+  }
+
   // overrides EuiBetaBadge specificity
   .visNewVisDialog__groupsCardBetaBadge {
     background: $euiColorEmptyShade;
