@@ -131,7 +131,6 @@ export class ExpressionLoader {
 
   update(expression?: string | ExpressionAstExpression, params?: IExpressionLoaderParams): void {
     this.setParams(params);
-
     this.loadingSubject.next(true);
     if (expression) {
       this.loadData(expression, this.params);
@@ -154,7 +153,6 @@ export class ExpressionLoader {
       inspectorAdapters: params.inspectorAdapters,
       searchSessionId: params.searchSessionId,
       debug: params.debug,
-      syncColors: params.syncColors,
     });
 
     const prevDataHandler = this.execution;
@@ -190,7 +188,6 @@ export class ExpressionLoader {
     if (params.searchSessionId && this.params) {
       this.params.searchSessionId = params.searchSessionId;
     }
-    this.params.syncColors = params.syncColors;
     this.params.debug = Boolean(params.debug);
 
     this.params.inspectorAdapters = (params.inspectorAdapters ||

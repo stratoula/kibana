@@ -70,8 +70,6 @@ export interface ExpressionExecutionParams {
 
   searchSessionId?: string;
 
-  syncColors?: boolean;
-
   inspectorAdapters?: Adapters;
 }
 

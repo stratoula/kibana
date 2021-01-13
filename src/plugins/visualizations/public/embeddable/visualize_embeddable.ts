@@ -310,6 +310,7 @@ export class VisualizeEmbeddable
       onRenderError: (element: HTMLElement, error: ExpressionRenderError) => {
         this.onContainerError(error);
       },
+      syncColors: this.input.syncColors,
     });
 
     this.subscriptions.push(
@@ -407,6 +408,12 @@ export class VisualizeEmbeddable
 
     if (this.handler && !abortController.signal.aborted) {
       this.handler.update(this.expression, expressionParams);
+      // const expressions = getExpressions();
+      // this.handler = new expressions.ExpressionLoader(
+      //   this.domNode,
+      //   this.expression,
+      //   expressionParams
+      // );
     }
   }
 

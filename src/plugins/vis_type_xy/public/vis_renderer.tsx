@@ -46,12 +46,14 @@ export const xyVisRenderer: ExpressionRenderDefinition<RenderValue> = {
   name: visName,
   displayName: 'XY visualization',
   reuseDomNode: true,
-  render: async (domNode, { visData, visConfig, visType, syncColors }, handlers) => {
+  render: async (domNode, { visData, visConfig, visType }, handlers) => {
     const showNoResult = shouldShowNoResultsMessage(visData, visType);
     const isSplitChart = Boolean(visConfig.dimensions.splitRow);
     const palettes = await getPalettesService().getPalettes();
 
     handlers.onDestroy(() => unmountComponentAtNode(domNode));
+    console.log(handlers.isSyncColorsEnabled());
+
     render(
       <I18nProvider>
         <>
@@ -63,7 +65,7 @@ export const xyVisRenderer: ExpressionRenderDefinition<RenderValue> = {
               renderComplete={handlers.done}
               fireEvent={handlers.event}
               uiState={handlers.uiState as PersistedState}
-              syncColors={syncColors}
+              syncColors={handlers.isSyncColorsEnabled() || false}
               palettes={palettes}
             />
           </VisualizationContainer>

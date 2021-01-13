@@ -34,7 +34,6 @@ export interface RenderValue {
   visData: Datatable;
   visType: ChartType;
   visConfig: VisParams;
-  syncColors: boolean;
 }
 
 export type VisTypeXyExpressionFunctionDefinition = ExpressionFunctionDefinition<
@@ -81,7 +80,6 @@ export const createVisTypeXyVisFn = (): VisTypeXyExpressionFunctionDefinition =>
         visType,
         visConfig,
         visData: context,
-        syncColors: handlers?.isSyncColorsEnabled?.() ?? false,
       },
     };
   },

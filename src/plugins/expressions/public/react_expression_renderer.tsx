@@ -92,6 +92,7 @@ export const ReactExpressionRenderer = ({
   const [debouncedExpression, setDebouncedExpression] = useState(expression);
   const [waitingForDebounceToComplete, setDebouncePending] = useState(false);
   const firstRender = useRef(true);
+  console.log(expressionLoaderOptions.syncColors);
   useShallowCompareEffect(() => {
     if (firstRender.current) {
       firstRender.current = false;
