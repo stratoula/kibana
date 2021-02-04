@@ -9,9 +9,12 @@
 import { isArray, last } from 'lodash';
 
 const DEFAULT_VALUE = 0;
-const extractValue = (data) => (data && data[1]) || null;
+const extractValue = (data: [number, number] | undefined) => (data && data[1]) || null;
 
-export const getLastValue = (data, defaultValue = DEFAULT_VALUE) => {
+export const getLastValue = (
+  data?: Array<[number, number]> | unknown,
+  defaultValue: string | number = DEFAULT_VALUE
+) => {
   if (!isArray(data)) {
     return data || defaultValue;
   }

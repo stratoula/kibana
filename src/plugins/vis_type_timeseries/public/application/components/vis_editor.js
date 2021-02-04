@@ -222,7 +222,6 @@ VisEditor.propTypes = {
   renderComplete: PropTypes.func,
   config: PropTypes.object,
   timeRange: PropTypes.object,
-  appState: PropTypes.object,
 };
 
 // default export required for React.Lazy
