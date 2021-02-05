@@ -23,6 +23,7 @@ export interface PanelData {
   data: Array<[number, number]>;
   labelFormatted?: string;
   isSplitByTerms?: boolean;
+  seriesId: string | number;
 }
 
 // series data is not fully typed yet

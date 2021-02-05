@@ -225,6 +225,7 @@ export const panel = schema.object({
   max_bars: numberIntegerOptional,
   interval: stringRequired,
   isModelInvalid: schema.maybe(schema.boolean()),
+  hidden: schema.maybe(schema.boolean()),
   legend_position: stringOptionalNullable,
   markdown: stringOptionalNullable,
   markdown_scrollbars: numberIntegerOptional,
