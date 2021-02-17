@@ -26,6 +26,8 @@ describe('getSupportedFieldsByMetricType', () => {
   shouldSupportAllFieldTypes('value_count');
   shouldHaveHistogramAndNumbers('avg');
   shouldHaveHistogramAndNumbers('sum');
+  shouldHaveHistogramAndNumbers('min');
+  shouldHaveHistogramAndNumbers('max');
 
   shouldHaveOnlyNumbers('positive_rate');
   shouldHaveOnlyNumbers('std_deviation');

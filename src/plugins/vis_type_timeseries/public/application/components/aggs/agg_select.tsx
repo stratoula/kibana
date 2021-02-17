@@ -225,7 +225,7 @@ const FILTER_RATIO_AGGS = [
   'value_count',
 ];
 
-const HISTOGRAM_AGGS = ['avg', 'count', 'sum', 'value_count'];
+const HISTOGRAM_AGGS = ['avg', 'count', 'sum', 'value_count', 'min', 'max'];
 
 const allAggOptions = [...metricAggs, ...pipelineAggs, ...siblingAggs, ...specialAggs];
 
