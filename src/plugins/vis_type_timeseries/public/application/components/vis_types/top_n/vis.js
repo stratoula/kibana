@@ -9,7 +9,7 @@
 import { getCoreStart } from '../../../../services';
 import { createTickFormatter } from '../../lib/tick_formatter';
 import { TopN } from '../../../visualizations/views/top_n';
-import { getLastValue } from '../../../../../common/get_last_value';
+import { getLastValue, DEFAULT_VALUE } from '../../../../../common/get_last_value';
 import { isBackgroundInverted } from '../../../lib/set_is_reversed';
 import { replaceVars } from '../../lib/replace_vars';
 import PropTypes from 'prop-types';
@@ -49,7 +49,11 @@ function TopNVisualization(props) {
         seriesConfig.value_template,
         props.getConfig
       );
-      const value = getLastValue(item.data);
+      let value = getLastValue(item.data);
+      // null series should behave as 0 values
+      if (value === DEFAULT_VALUE) {
+        value = 0;
+      }
       let color = item.color || seriesConfig.color;
       if (model.bar_color_rules) {
         model.bar_color_rules.forEach((rule) => {
