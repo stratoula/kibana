@@ -64,6 +64,6 @@ export async function fetchFields(
         text: error.message,
       });
     }
+    throw error;
   }
-  return {};
 }
