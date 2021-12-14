@@ -646,9 +646,9 @@ export default class QueryStringInputUI extends Component<Props, State> {
     }
 
     if (this.state.selectionStart !== null && this.state.selectionEnd !== null) {
-      if (this.inputRef != null) {
-        this.inputRef.setSelectionRange(this.state.selectionStart, this.state.selectionEnd);
-      }
+      // if (this.inputRef != null) {
+      //   this.inputRef.setSelectionRange(this.state.selectionStart, this.state.selectionEnd);
+      // }
       this.setState({
         selectionStart: null,
         selectionEnd: null,
@@ -790,11 +790,11 @@ export default class QueryStringInputUI extends Component<Props, State> {
                     defaultMessage: 'Start typing to search or filter...',
                   })
                 }
-                // inputRef={(node: any) => {
-                //   if (node) {
-                //     this.inputRef = node;
-                //   }
-                // }}
+                inputRef={(node: any) => {
+                  if (node) {
+                    this.inputRef = node;
+                  }
+                }}
                 setCaretPosition={(position: CaretPosition) => {
                   this.setState({ caretPosition: position });
                 }}

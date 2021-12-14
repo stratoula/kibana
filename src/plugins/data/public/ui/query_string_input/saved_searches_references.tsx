@@ -22,7 +22,7 @@ interface Props {
   placeholder: string;
   value: string;
   selectedSavedQueries?: SavedQuery[];
-  inputRef?: (input: HTMLInputElement | null) => void;
+  inputRef?: (input: HTMLDivElement | null) => void;
   onClick?: (savedQuery: SavedQuery) => void;
   onInputChange?: (value: string) => void;
   setCaretPosition?: (pos: CaretPosition) => void;
@@ -37,22 +37,27 @@ export const SavedSearchesReferences: FC<Props> = ({
   inputRef,
   setCaretPosition,
 }: Props) => {
-  const inputEl = useRef<HTMLInputElement>(null);
+  //   const inputEl = useRef<HTMLInputElement>(null);
   const [isPlaceholderVisible, setIsPlaceholderVisible] = useState(
     !value && selectedSavedQueries?.length === 0
   );
+  const [inputEl, setInputEl] = useState<HTMLDivElement | null>(null);
   const initialCursorPosition = {
     start: 0,
     end: 0,
   };
 
   useEffect(() => {
-    if (!inputEl.current) return;
-    if (!value) return;
-    if (value !== inputEl.current.textContent) {
-      inputEl.current.textContent = value;
+    if (!inputEl || !value) return;
+    if (value !== inputEl.textContent) {
+      inputEl.textContent = value;
     }
-  }, [value]);
+  }, [inputEl, value]);
+
+  const tempRef = (el: HTMLDivElement | null) => {
+    setInputEl(el);
+    inputRef?.(el);
+  };
 
   const computeCaretPosition = (containerEl: HTMLInputElement) => {
     const range = window?.getSelection()?.getRangeAt(0);
@@ -74,7 +79,7 @@ export const SavedSearchesReferences: FC<Props> = ({
     setCaretPosition?.(caretPosition);
     setIsPlaceholderVisible(!Boolean(textContext.length));
     if (!textContext) return;
-    // inputRef?.(inputEl.current);
+    inputRef?.(inputEl);
     onInputChange?.(textContext);
   };
   return (
@@ -83,7 +88,10 @@ export const SavedSearchesReferences: FC<Props> = ({
       className="queryStringCustomTextArea"
       onInput={onInput}
       onKeyDown={() => setIsPlaceholderVisible(false)}
-      ref={inputEl}
+      //   ref={inputEl}
+      ref={(el) => {
+        tempRef(el);
+      }}
     >
       {selectedSavedQueries?.map((savedQuery, idx) => {
         const onClickHandler = () => {
