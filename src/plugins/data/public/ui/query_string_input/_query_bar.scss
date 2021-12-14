@@ -87,7 +87,6 @@
   font-size: 14px;
   color: #343741;
   padding: 12px;
-  padding-left: 40px;
   box-shadow: 0 0 transparent, inset 0 0 0 1px rgba(17,43,134,.1);
   transition: box-shadow 150ms ease-in, background-image 150ms ease-in, background-size 150ms ease-in, background-color 150ms ease-in;
 
@@ -96,6 +95,18 @@
     background-image: linear-gradient(to top, #07C, #07C 2px, transparent 2px, transparent 100%);
     outline: none !important;
     box-shadow: inset 0 0 0 1px rgba(17,43,134,.1);
+  }
+
+  .queryStringCustomTextArea__savedReference {
+    font-weight: bold;
+  }
+
+  .queryStringCustomTextArea__savedReferenceConnector {
+    font-weight: normal;
+  }
+
+  .queryStringCustomTextArea__placeholder {
+    color: #9BA6B2;
   }
 }
 

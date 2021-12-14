@@ -39,7 +39,9 @@ import { getQueryLog, matchPairs, toUser, fromUser } from '../../query';
 import type { PersistedLog } from '../../query';
 import type { SuggestionsListSize } from '../typeahead/suggestions_component';
 import { SuggestionsComponent } from '..';
+import { SavedQuery } from '../..';
 import { KIBANA_USER_QUERY_LANGUAGE_KEY, getFieldSubtypeNested } from '../../../common';
+import { SavedSearchesReferences } from './saved_searches_references';
 
 export interface QueryStringInputProps {
   indexPatterns: Array<IIndexPattern | string>;
@@ -63,6 +65,7 @@ export interface QueryStringInputProps {
   isInvalid?: boolean;
   isClearable?: boolean;
   iconType?: EuiIconProps['type'];
+  selectedSavedQueries?: SavedQuery[];
 
   /**
    * @param nonKqlMode by default if language switch is enabled, user can switch between kql and lucene syntax mode
@@ -89,6 +92,11 @@ interface Props extends QueryStringInputProps {
   kibana: KibanaReactContextValue<IDataPluginServices>;
 }
 
+interface CaretPosition {
+  start: number | null;
+  end: number | null;
+}
+
 interface State {
   isSuggestionsVisible: boolean;
   index: number | null;
@@ -98,6 +106,7 @@ interface State {
   selectionEnd: number | null;
   indexPatterns: IIndexPattern[];
   queryBarRect: DOMRect | undefined;
+  caretPosition: CaretPosition;
 }
 
 const KEY_CODES = {
@@ -128,6 +137,10 @@ export default class QueryStringInputUI extends Component<Props, State> {
     selectionEnd: null,
     indexPatterns: [],
     queryBarRect: undefined,
+    caretPosition: {
+      start: null,
+      end: null,
+    },
   };
 
   public inputRef: HTMLTextAreaElement | null = null;
@@ -182,9 +195,9 @@ export default class QueryStringInputUI extends Component<Props, State> {
   }, 200);
 
   private getSuggestions = async () => {
-    if (!this.inputRef) {
-      return;
-    }
+    // if (!this.inputRef) {
+    //   return;
+    // }
 
     const language = this.props.query.language;
     const queryString = this.getQueryString();
@@ -202,8 +215,7 @@ export default class QueryStringInputUI extends Component<Props, State> {
 
     const indexPatterns = this.state.indexPatterns;
 
-    const { selectionStart, selectionEnd } = this.inputRef;
-    if (selectionStart === null || selectionEnd === null) {
+    if (this.state?.caretPosition?.start === null || this.state?.caretPosition?.end === null) {
       return;
     }
 
@@ -215,8 +227,8 @@ export default class QueryStringInputUI extends Component<Props, State> {
           language,
           indexPatterns,
           query: queryString,
-          selectionStart,
-          selectionEnd,
+          selectionStart: this.state?.caretPosition?.start,
+          selectionEnd: this.state?.caretPosition?.end,
           signal: this.abortController.signal,
           useTimeRange: this.props.timeRangeForSuggestionsOverride,
         })) || [];
@@ -288,6 +300,15 @@ export default class QueryStringInputUI extends Component<Props, State> {
     const value = this.formatTextAreaValue(event.target.value);
     this.onQueryStringChange(value);
     if (event.target.value === '') {
+      this.handleRemoveHeight();
+    } else {
+      this.handleAutoHeight();
+    }
+  };
+
+  private onReferencesInputChange = (value: string) => {
+    this.onQueryStringChange(value);
+    if (value === '') {
       this.handleRemoveHeight();
     } else {
       this.handleAutoHeight();
@@ -383,20 +404,26 @@ export default class QueryStringInputUI extends Component<Props, State> {
   };
 
   private selectSuggestion = (suggestion: QuerySuggestion, listIndex: number) => {
-    if (!this.inputRef) {
-      return;
-    }
+    // if (!this.inputRef) {
+    //   return;
+    // }
     const { type, text, start, end, cursorIndex } = suggestion;
 
     this.handleNestedFieldSyntaxNotification(suggestion);
 
     const query = this.getQueryString();
-    const { selectionStart, selectionEnd } = this.inputRef;
-    if (selectionStart === null || selectionEnd === null) {
+    // let { selectionStart, selectionEnd } = this.inputRef;
+    // if (!selectionStart || !selectionEnd) {
+    //   selectionStart = this.state?.caretPosition?.start;
+    //   selectionEnd = this.state?.caretPosition?.end;
+    // }
+
+    if (this.state.caretPosition.start === null || this.state.caretPosition.end === null) {
       return;
     }
 
-    const value = query.substr(0, selectionStart) + query.substr(selectionEnd);
+    const value =
+      query.substr(0, this.state.caretPosition.start) + query.substr(this.state.caretPosition.end);
     const newQueryString = value.substr(0, start) + text + value.substr(end);
 
     this.reportUiCounter?.(
@@ -413,6 +440,10 @@ export default class QueryStringInputUI extends Component<Props, State> {
     this.setState({
       selectionStart: start + (cursorIndex ? cursorIndex : text.length),
       selectionEnd: start + (cursorIndex ? cursorIndex : text.length),
+      caretPosition: {
+        start: start + (cursorIndex ? cursorIndex : text.length),
+        end: start + text.length,
+      },
     });
     const isTypeRecentSearch = type === QuerySuggestionTypes.RecentSearch;
 
@@ -563,11 +594,11 @@ export default class QueryStringInputUI extends Component<Props, State> {
   };
 
   private onClickSuggestion = (suggestion: QuerySuggestion, index: number) => {
-    if (!this.inputRef) {
-      return;
-    }
+    // if (!this.inputRef) {
+    //   return;
+    // }
     this.selectSuggestion(suggestion, index);
-    this.inputRef.focus();
+    // this.inputRef.focus();
   };
 
   private initPersistedLog = () => {
@@ -750,10 +781,26 @@ export default class QueryStringInputUI extends Component<Props, State> {
                   this.props.onChangeQueryInputFocus ? false : !this.props.disableAutoFocus
                 }
               />
-              <div contentEditable={true} className="queryStringCustomTextArea">
-                {' '}
-                Miaou{' '}
-              </div>
+              {/* <SavedSearchesReferences
+                selectedSavedQueries={this.props.selectedSavedQueries}
+                onInputChange={this.onReferencesInputChange}
+                placeholder={
+                  this.props.placeholder ||
+                  i18n.translate('data.query.queryBar.searchInputPlaceholder', {
+                    defaultMessage: 'Start typing to search or filter...',
+                  })
+                }
+                // inputRef={(node: any) => {
+                //   if (node) {
+                //     this.inputRef = node;
+                //   }
+                // }}
+                setCaretPosition={(position: CaretPosition) => {
+                  this.setState({ caretPosition: position });
+                }}
+                value={this.forwardNewValueIfNeeded(this.getQueryString())}
+                data-test-subj={this.props.dataTestSubj || 'queryInput'}
+              /> */}
               {/* <EuiTextArea
                 placeholder={
                   this.props.placeholder ||

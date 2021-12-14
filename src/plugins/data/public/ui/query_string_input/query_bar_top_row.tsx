@@ -74,6 +74,7 @@ export interface QueryBarTopRowProps {
   toggleAddFilterModal?: (value: boolean) => void;
   isAddFilterModalOpen?: boolean;
   addFilterMode?: string;
+  selectedSavedQueries?: SavedQuery[];
 }
 
 // Needed for React.lazy
@@ -220,6 +221,7 @@ export default function QueryBarTopRow(props: QueryBarTopRowProps) {
           nonKqlMode={props.nonKqlMode}
           nonKqlModeHelpText={props.nonKqlModeHelpText}
           timeRangeForSuggestionsOverride={props.timeRangeForSuggestionsOverride}
+          selectedSavedQueries={props.selectedSavedQueries}
         />
       </EuiFlexItem>
     );
