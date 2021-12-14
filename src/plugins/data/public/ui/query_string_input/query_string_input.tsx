@@ -750,6 +750,10 @@ export default class QueryStringInputUI extends Component<Props, State> {
                   this.props.onChangeQueryInputFocus ? false : !this.props.disableAutoFocus
                 }
               />
+              <div contentEditable={true} className="queryStringCustomTextArea">
+                {' '}
+                Miaou{' '}
+              </div>
               {/* <EuiTextArea
                 placeholder={
                   this.props.placeholder ||
