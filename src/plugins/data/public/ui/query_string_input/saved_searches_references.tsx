@@ -75,10 +75,10 @@ export const SavedSearchesReferences: FC<Props> = ({
 
   const onInput = (event: React.ChangeEvent<HTMLInputElement>) => {
     const textContext = event.currentTarget.textContent ?? '';
+    if (!textContext) return;
     const caretPosition = computeCaretPosition(event.currentTarget);
     setCaretPosition?.(caretPosition);
     setIsPlaceholderVisible(!Boolean(textContext.length));
-    if (!textContext) return;
     inputRef?.(inputEl);
     onInputChange?.(textContext);
   };

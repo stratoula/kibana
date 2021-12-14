@@ -195,9 +195,9 @@ export default class QueryStringInputUI extends Component<Props, State> {
   }, 200);
 
   private getSuggestions = async () => {
-    // if (!this.inputRef) {
-    //   return;
-    // }
+    if (!this.inputRef) {
+      return;
+    }
 
     const language = this.props.query.language;
     const queryString = this.getQueryString();
@@ -404,9 +404,9 @@ export default class QueryStringInputUI extends Component<Props, State> {
   };
 
   private selectSuggestion = (suggestion: QuerySuggestion, listIndex: number) => {
-    // if (!this.inputRef) {
-    //   return;
-    // }
+    if (!this.inputRef) {
+      return;
+    }
     const { type, text, start, end, cursorIndex } = suggestion;
 
     this.handleNestedFieldSyntaxNotification(suggestion);
@@ -594,11 +594,11 @@ export default class QueryStringInputUI extends Component<Props, State> {
   };
 
   private onClickSuggestion = (suggestion: QuerySuggestion, index: number) => {
-    // if (!this.inputRef) {
-    //   return;
-    // }
+    if (!this.inputRef) {
+      return;
+    }
     this.selectSuggestion(suggestion, index);
-    // this.inputRef.focus();
+    this.inputRef.focus();
   };
 
   private initPersistedLog = () => {
@@ -760,7 +760,7 @@ export default class QueryStringInputUI extends Component<Props, State> {
               className={inputWrapClassName}
               ref={this.queryBarInputDivRefInstance}
             >
-              <EuiFieldSearch
+              {/* <EuiFieldSearch
                 placeholder={
                   this.props.placeholder ||
                   i18n.translate('data.query.queryBar.searchInputPlaceholder', {
@@ -780,8 +780,8 @@ export default class QueryStringInputUI extends Component<Props, State> {
                 autoFocus={
                   this.props.onChangeQueryInputFocus ? false : !this.props.disableAutoFocus
                 }
-              />
-              {/* <SavedSearchesReferences
+              /> */}
+              <SavedSearchesReferences
                 selectedSavedQueries={this.props.selectedSavedQueries}
                 onInputChange={this.onReferencesInputChange}
                 placeholder={
@@ -800,7 +800,7 @@ export default class QueryStringInputUI extends Component<Props, State> {
                 }}
                 value={this.forwardNewValueIfNeeded(this.getQueryString())}
                 data-test-subj={this.props.dataTestSubj || 'queryInput'}
-              /> */}
+              />
               {/* <EuiTextArea
                 placeholder={
                   this.props.placeholder ||
