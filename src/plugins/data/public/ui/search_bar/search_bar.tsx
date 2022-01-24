@@ -110,6 +110,7 @@ interface State {
   showSaveQueryModal: boolean;
   showSaveNewQueryModal: boolean;
   openFilterSetPopover: boolean;
+  openFilterExpressionPopover: boolean;
   showSavedQueryPopover: boolean;
   selectedSavedQueries: SavedQuery[];
   finalSelectedSavedQueries: SavedQuery[];
@@ -199,6 +200,7 @@ class SearchBarUI extends Component<SearchBarProps, State> {
     showSaveQueryModal: false,
     showSaveNewQueryModal: false,
     openFilterSetPopover: false,
+    openFilterExpressionPopover: false,
     showSavedQueryPopover: false,
     currentProps: this.props,
     selectedSavedQueries: [],
@@ -306,6 +308,7 @@ class SearchBarUI extends Component<SearchBarProps, State> {
         showSaveQueryModal: false,
         showSaveNewQueryModal: false,
         openFilterSetPopover: false,
+        openFilterExpressionPopover: false,
       });
 
       if (this.props.onSaved) {
@@ -530,6 +533,12 @@ class SearchBarUI extends Component<SearchBarProps, State> {
     });
   };
 
+  public toggleFilterExpressionPopover = (value: boolean) => {
+    this.setState({
+      openFilterExpressionPopover: value,
+    });
+  };
+
   public render() {
     const savedQueryManagement = this.state.query && this.props.onClearSavedQuery && (
       <SavedQueryManagementComponent
@@ -546,13 +555,19 @@ class SearchBarUI extends Component<SearchBarProps, State> {
       </SavedQueryManagementComponent>
     );
 
-    const saveQueryFormComponent = (
+    const saveQueryFormComponent = (timeFilterOption?: boolean) => (
       <SaveQueryForm
         savedQueryService={this.savedQueryService}
         onSave={(savedQueryMeta) => this.onSave(savedQueryMeta, true)}
-        onClose={() => this.setState({ openFilterSetPopover: false })}
+        onClose={() =>
+          this.setState({ openFilterSetPopover: false, openFilterExpressionPopover: false })
+        }
         showFilterOption={this.props.showFilterBar}
-        showTimeFilterOption={this.shouldRenderTimeFilterInSavedQueryForm()}
+        showTimeFilterOption={
+          timeFilterOption === undefined
+            ? this.shouldRenderTimeFilterInSavedQueryForm()
+            : timeFilterOption
+        }
       />
     );
 
@@ -572,7 +587,7 @@ class SearchBarUI extends Component<SearchBarProps, State> {
         toggleAddFilterModal={this.toggleAddFilterModal}
         savedQueryService={this.savedQueryService}
         applySelectedQuery={this.applySelectedQuery}
-        saveQueryFormComponent={saveQueryFormComponent}
+        saveQueryFormComponent={saveQueryFormComponent()}
         toggleFilterSetPopover={this.toggleFilterSetPopover}
         openFilterSetPopover={this.state.openFilterSetPopover}
       />
@@ -695,6 +710,9 @@ class SearchBarUI extends Component<SearchBarProps, State> {
             removeSelectedSavedQuery={this.removeSelectedSavedQuery}
             onMultipleFiltersUpdated={this.onMultipleFiltersUpdated}
             multipleFilters={this.state.multipleFilters}
+            openFilterExpressionPopover={this.state.openFilterExpressionPopover}
+            toggleFilterExpressionPopover={this.toggleFilterExpressionPopover}
+            saveQueryFormComponent={saveQueryFormComponent(false)}
           />
         </div>
       );

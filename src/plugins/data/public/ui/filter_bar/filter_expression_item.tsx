@@ -16,12 +16,13 @@ import {
 } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
 import { groupBy } from 'lodash';
-import React, { FC, useState } from 'react';
+import React, { FC, useContext, useState } from 'react';
 import { Filter, toggleFilterDisabled } from '@kbn/es-query';
 import { FILTERS } from '../../../common';
 import { existsOperator, isOneOfOperator } from './filter_editor/lib/filter_operators';
 import { IIndexPattern } from '../..';
 import { getDisplayValueFromFilter, getIndexPatternFromFilter } from '../../query';
+import { FilterBarContext } from './filter_bar_context';
 
 const FILTER_ITEM_OK = '';
 const FILTER_ITEM_WARNING = 'warn';
@@ -57,14 +58,17 @@ export const FilterExpressionItem: FC<Props> = ({
   filtersGroupsCount,
   onUpdate,
 }: Props) => {
-  const [isPopoverOpen, setIsPopoverOpen] = useState<boolean>(false);
+  // const [isPopoverOpen, setIsPopoverOpen] = useState<boolean>(false);
+  const { openFilterExpressionPopover, toggleFilterExpressionPopover, saveQueryFormComponent } =
+    useContext(FilterBarContext);
   function handleBadgeClick() {
     // if (e.shiftKey) {
     //   onToggleDisabled();
     // } else {
     //   setIsPopoverOpen(!isPopoverOpen);
     // }
-    setIsPopoverOpen(!isPopoverOpen);
+    toggleFilterExpressionPopover(!openFilterExpressionPopover);
+    // setIsPopoverOpen(!isPopoverOpen);
   }
 
   function onDuplicate() {
@@ -105,7 +109,8 @@ export const FilterExpressionItem: FC<Props> = ({
         }),
         icon: 'invert',
         onClick: () => {
-          setIsPopoverOpen(false);
+          toggleFilterExpressionPopover(false);
+          // setIsPopoverOpen(false);
           onToggleNegated();
         },
         'data-test-subj': 'negateFilter',
@@ -116,7 +121,8 @@ export const FilterExpressionItem: FC<Props> = ({
         }),
         icon: 'copy',
         onClick: () => {
-          setIsPopoverOpen(false);
+          toggleFilterExpressionPopover(false);
+          // setIsPopoverOpen(false);
           onDuplicate();
         },
         'data-test-subj': 'negateFilter',
@@ -131,10 +137,19 @@ export const FilterExpressionItem: FC<Props> = ({
             }),
         icon: `${groupedFilters[0].meta.disabled ? 'eye' : 'eyeClosed'}`,
         onClick: () => {
-          setIsPopoverOpen(false);
+          toggleFilterExpressionPopover(false);
+          // setIsPopoverOpen(false);
           onToggleDisabled();
         },
         'data-test-subj': 'disableFilter',
+      },
+      {
+        name: i18n.translate('data.filter.filterBar.saveAsFilterButtonLabel', {
+          defaultMessage: `Save as filter`,
+        }),
+        icon: 'save',
+        panel: 2,
+        'data-test-subj': 'saveAsFilter',
       },
       {
         name: i18n.translate('data.filter.filterBar.deleteFilterButtonLabel', {
@@ -142,7 +157,8 @@ export const FilterExpressionItem: FC<Props> = ({
         }),
         icon: 'trash',
         onClick: () => {
-          setIsPopoverOpen(false);
+          toggleFilterExpressionPopover(false);
+          // setIsPopoverOpen(false);
           onRemove(groupId);
         },
         'data-test-subj': 'deleteFilter',
@@ -153,6 +169,13 @@ export const FilterExpressionItem: FC<Props> = ({
       {
         id: 0,
         items: mainPanelItems,
+      },
+      {
+        id: 2,
+        title: i18n.translate('data.filter.filterBar.saveAsFilterButtonLabel', {
+          defaultMessage: `Save as filter`,
+        }),
+        content: <div style={{ padding: 16 }}>{saveQueryFormComponent}</div>,
       },
       // {
       //   id: 1,
@@ -417,9 +440,10 @@ export const FilterExpressionItem: FC<Props> = ({
   return (
     <EuiPopover
       id={`popoverFor_filter${groupId}`}
-      isOpen={isPopoverOpen}
+      isOpen={openFilterExpressionPopover}
       closePopover={() => {
-        setIsPopoverOpen(false);
+        toggleFilterExpressionPopover(false);
+        // setIsPopoverOpen(false);
       }}
       button={badge}
       panelPaddingSize="none"

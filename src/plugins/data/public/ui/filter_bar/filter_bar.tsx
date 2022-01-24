@@ -33,6 +33,7 @@ import { SavedQueriesItem } from './saved_queries_item';
 import { FilterExpressionItem } from './filter_expression_item';
 
 import { UI_SETTINGS } from '../../../common';
+import { FilterBarContext } from './filter_bar_context';
 
 interface Props {
   filters: Filter[];
@@ -46,6 +47,9 @@ interface Props {
   selectedSavedQueries?: SavedQuery[];
   removeSelectedSavedQuery: (savedQuery: SavedQuery) => void;
   onMultipleFiltersUpdated?: (filters: Filter[]) => void;
+  openFilterExpressionPopover: boolean;
+  toggleFilterExpressionPopover: (value: boolean) => void;
+  saveQueryFormComponent: JSX.Element;
 }
 
 const FilterBarUI = React.memo(function FilterBarUI(props: Props) {
@@ -279,15 +283,24 @@ const FilterBarUI = React.memo(function FilterBarUI(props: Props) {
   // }
 
   const classes = classNames('globalFilterBar', props.className);
+  const { openFilterExpressionPopover, toggleFilterExpressionPopover, saveQueryFormComponent } =
+    props;
 
   return (
-    <EuiFlexGroup
-      className="globalFilterGroup"
-      gutterSize="none"
-      alignItems="flexStart"
-      responsive={false}
+    <FilterBarContext.Provider
+      value={{
+        openFilterExpressionPopover,
+        toggleFilterExpressionPopover,
+        saveQueryFormComponent,
+      }}
     >
-      {/* <EuiFlexItem className="globalFilterGroup__branch" grow={false}>
+      <EuiFlexGroup
+        className="globalFilterGroup"
+        gutterSize="none"
+        alignItems="flexStart"
+        responsive={false}
+      >
+        {/* <EuiFlexItem className="globalFilterGroup__branch" grow={false}>
         <FilterOptions
           onEnableAll={onEnableAll}
           onDisableAll={onDisableAll}
@@ -299,23 +312,24 @@ const FilterBarUI = React.memo(function FilterBarUI(props: Props) {
         />
       </EuiFlexItem> */}
 
-      <EuiFlexItem className="globalFilterGroup__filterFlexItem">
-        <EuiFlexGroup
-          ref={groupRef}
-          className={classes}
-          wrap={true}
-          responsive={false}
-          gutterSize="xs"
-          alignItems="center"
-          tabIndex={-1}
-        >
-          {renderMultipleFilters()}
-          {renderSelectedSavedQueries()}
-          {props.multipleFilters.length === 0 && renderItems()}
-          {/* {renderAddFilter()} */}
-        </EuiFlexGroup>
-      </EuiFlexItem>
-    </EuiFlexGroup>
+        <EuiFlexItem className="globalFilterGroup__filterFlexItem">
+          <EuiFlexGroup
+            ref={groupRef}
+            className={classes}
+            wrap={true}
+            responsive={false}
+            gutterSize="xs"
+            alignItems="center"
+            tabIndex={-1}
+          >
+            {renderMultipleFilters()}
+            {renderSelectedSavedQueries()}
+            {props.multipleFilters.length === 0 && renderItems()}
+            {/* {renderAddFilter()} */}
+          </EuiFlexGroup>
+        </EuiFlexItem>
+      </EuiFlexGroup>
+    </FilterBarContext.Provider>
   );
 });
 
