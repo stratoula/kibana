@@ -34,6 +34,8 @@ import { FilterExpressionItem } from './filter_expression_item';
 
 import { UI_SETTINGS } from '../../../common';
 import { FilterBarContext } from './filter_bar_context';
+import { SavedQueryMeta } from '../saved_query_form';
+import { SavedQueryService } from '../..';
 
 interface Props {
   filters: Filter[];
@@ -47,9 +49,8 @@ interface Props {
   selectedSavedQueries?: SavedQuery[];
   removeSelectedSavedQuery: (savedQuery: SavedQuery) => void;
   onMultipleFiltersUpdated?: (filters: Filter[]) => void;
-  openFilterExpressionPopover: boolean;
-  toggleFilterExpressionPopover: (value: boolean) => void;
-  saveQueryFormComponent: JSX.Element;
+  savedQueryService: SavedQueryService;
+  onFilterSave: (savedQueryMeta: SavedQueryMeta, saveAsNew?: boolean) => Promise<void>;
 }
 
 const FilterBarUI = React.memo(function FilterBarUI(props: Props) {
@@ -283,15 +284,13 @@ const FilterBarUI = React.memo(function FilterBarUI(props: Props) {
   // }
 
   const classes = classNames('globalFilterBar', props.className);
-  const { openFilterExpressionPopover, toggleFilterExpressionPopover, saveQueryFormComponent } =
-    props;
+  const { savedQueryService, onFilterSave } = props;
 
   return (
     <FilterBarContext.Provider
       value={{
-        openFilterExpressionPopover,
-        toggleFilterExpressionPopover,
-        saveQueryFormComponent,
+        savedQueryService,
+        onFilterSave,
       }}
     >
       <EuiFlexGroup

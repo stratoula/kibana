@@ -7,11 +7,12 @@
  */
 
 import React from 'react';
+import { SavedQueryService } from '../..';
+import { SavedQueryMeta } from '../saved_query_form';
 
 export interface IFilterBarContext {
-  openFilterExpressionPopover: boolean;
-  toggleFilterExpressionPopover: (value: boolean) => void;
-  saveQueryFormComponent: JSX.Element;
+  savedQueryService: SavedQueryService;
+  onFilterSave: (savedQueryMeta: SavedQueryMeta, saveAsNew?: boolean) => Promise<void>;
 }
 
 const defaultContext = {} as unknown as IFilterBarContext;
