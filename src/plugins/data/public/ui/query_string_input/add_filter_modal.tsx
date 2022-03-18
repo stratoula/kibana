@@ -562,7 +562,7 @@ export function AddFilterModal({
               return (
                 <>
                   <EuiDraggable
-                    spacing="m"
+                    spacing="s"
                     key={localfilter.id}
                     index={Number(localfilter.id)}
                     draggableId={`${localfilter.groupId}-${localfilter.subGroupId}-${localfilter.id}`}
@@ -736,7 +736,7 @@ export function AddFilterModal({
               <>
                 <div className={classNames(classes)}>
                   <EuiDroppable
-                    spacing="m"
+                    spacing="s"
                     droppableId={`${subGroup[0].groupId}-${subGroup[0].subGroupId}`}
                   >
                     {group}
