@@ -16,7 +16,6 @@ import {
   cleanFilter,
   getFilterParams,
   FieldFilter,
-  buildQueryFromFilters,
 } from '@kbn/es-query';
 import {
   EuiFormRow,
@@ -32,7 +31,6 @@ import {
   EuiTabs,
   EuiTab,
   EuiPanel,
-  EuiForm,
   EuiHorizontalRule,
   EuiButtonIcon,
   EuiText,
@@ -58,9 +56,32 @@ import { RangeValueInput } from '../filter_bar/filter_editor/range_value_input';
 import { SavedQueryMeta } from '../saved_query_form';
 
 import { IIndexPattern, IFieldType } from '../..';
-import { IModalTab, QUERY_BUILDER, QUICK_FORM } from './filter_builder_modal';
 
-const possibleTabs: IModalTab[] = [QUICK_FORM, QUERY_BUILDER];
+export interface IModalTab {
+  type: string;
+  label: string;
+}
+
+export const QUICK_FORM: IModalTab = {
+  type: 'quick_form',
+  label: i18n.translate('data.filter.filterEditor.quickFormLabel', {
+    defaultMessage: 'Quick form',
+  }),
+};
+export const QUERY_BUILDER: IModalTab = {
+  type: 'query_builder',
+  label: i18n.translate('data.filter.filterEditor.queryBuilderLabel', {
+    defaultMessage: 'Query builder',
+  }),
+};
+export const SAVED_FILTERS: IModalTab = {
+  type: 'saved_filters',
+  label: i18n.translate('data.filter.filterEditor.savedFiltersLabel', {
+    defaultMessage: 'Saved filters',
+  }),
+};
+
+const defaultTabs = [QUICK_FORM, QUERY_BUILDER, SAVED_FILTERS];
 
 export interface FilterGroup {
   field: IFieldType | undefined;
@@ -70,83 +91,61 @@ export interface FilterGroup {
   id: number;
   relationship?: string;
   subGroupId?: number;
-  groupCount?: number;
 }
 
-export function EditFilterModal({
+export function FilterBuilderModal({
   onSubmit,
   onMultipleFiltersSubmit,
   onCancel,
-  filter,
+  applySavedQueries,
   multipleFilters,
-  currentEditFilters,
+  filters,
   indexPatterns,
   timeRangeForSuggestionsOverride,
+  savedQueryManagement,
   initialAddFilterMode,
-  onRemoveFilterGroup,
   saveFilters,
   savedQueryService,
-  filters,
-  tabs = possibleTabs,
-  initialLabel,
+  initialLabel, // ?? need to think deeply
+  onRemoveFilterGroup,
+  tabs = defaultTabs,
 }: {
   onSubmit: (filters: Filter[]) => void;
-  onMultipleFiltersSubmit: (
-    filters: FilterGroup[],
-    buildFilters: Filter[],
-    groupCount: number
-  ) => void;
+  onMultipleFiltersSubmit: (filters: FilterGroup[], buildFilters: Filter[]) => void;
+  applySavedQueries?: () => void;
   onCancel: () => void;
-  filter: Filter;
-  multipleFilters?: Filter[];
-  currentEditFilters?: Filter[];
+  filters: Filter[];
+  multipleFilters: Filter[];
   indexPatterns: IIndexPattern[];
   timeRangeForSuggestionsOverride?: boolean;
+  savedQueryManagement?: JSX.Element;
   initialAddFilterMode?: string;
-  onRemoveFilterGroup: () => void;
   saveFilters: (savedQueryMeta: SavedQueryMeta, saveAsNew?: boolean) => Promise<void>;
   savedQueryService: SavedQueryService;
-  filters: Filter[];
+  initialLabel: string;
+  onRemoveFilterGroup?: () => void;
   tabs?: IModalTab[];
-  initialLabel?: string;
 }) {
   const [selectedIndexPattern, setSelectedIndexPattern] = useState(
-    getIndexPatternFromFilter(filter, indexPatterns)
+    getIndexPatternFromFilter(filters[0], indexPatterns)
   );
-  const [addFilterMode, setAddFilterMode] = useState<string>(initialAddFilterMode ?? tabs[0].type);
+  const [filterBuilderMode, setFilterBuilderMode] = useState<string>(
+    initialAddFilterMode ?? QUICK_FORM.type ?? QUERY_BUILDER.type
+  );
   const [customLabel, setCustomLabel] = useState<string>(initialLabel || '');
   const [queryDsl, setQueryDsl] = useState<string>(
     JSON.stringify(
-      // {
-      //   query: {
-      //     bool: buildQueryFromFilters(filters, selectedIndexPattern),
-      //   },
-      // },
       filters.map((filter) => cleanFilter(filter)),
       null,
       2
     )
   );
-  const [localFilters, setLocalFilters] = useState<FilterGroup[]>(
-    tabs.includes(QUICK_FORM)
-      ? convertFilterToFilterGroup(currentEditFilters)
-      : [
-          {
-            field: undefined,
-            operator: undefined,
-            value: undefined,
-            groupId: 1,
-            id: 0,
-            subGroupId: 1,
-            relationship: undefined,
-          },
-        ]
-  );
-  const [groupsCount, setGroupsCount] = useState<number>(
-    new Set(localFilters.map((filter) => filter.groupId)).size
-  );
   const [savedQueries, setSavedQueries] = useState<SavedQuery[]>([]);
   const [submitDisabled, setSubmitDisabled] = useState(false);
+
+  const [localFilters, setLocalFilters] = useState<FilterGroup[]>(
+    convertFilterToFilterGroup(filters)
+  );
 
   useEffect(() => {
     const fetchQueries = async () => {
@@ -157,30 +156,25 @@ export function EditFilterModal({
     fetchQueries();
   }, [savedQueryService]);
 
-  function convertFilterToFilterGroup(convertibleFilters: Filter[] | undefined): FilterGroup[] {
-    if (!convertibleFilters) {
-      return [
-        {
-          field: undefined,
-          operator: undefined,
-          value: undefined,
-          groupId: 1,
-          id: 0,
-          subGroupId: 1,
-          relationship: undefined,
-        },
-      ];
-    }
+  function getInitForField(filtersGroups: any[], field: string, minValue: number) {
+    return filtersGroups.length
+      ? Math.max.apply(
+          Math,
+          filtersGroups.map((f) => f[field])
+        ) + 1
+      : minValue;
+  }
 
-    return convertibleFilters.map((convertedfilter) => {
+  function convertFilterToFilterGroup(convertibleFilters: Filter[]): FilterGroup[] {
+    return convertibleFilters.map((convertedFilter) => {
       return {
-        field: getFieldFromFilter(convertedfilter as FieldFilter, selectedIndexPattern),
-        operator: getOperatorFromFilter(convertedfilter),
-        value: getFilterParams(convertedfilter),
-        groupId: convertedfilter.groupId,
-        id: convertedfilter.id,
-        subGroupId: convertedfilter.subGroupId,
-        relationship: convertedfilter.relationship,
+        field: getFieldFromFilter(convertedFilter as FieldFilter, selectedIndexPattern),
+        operator: getOperatorFromFilter(convertedFilter),
+        value: getFilterParams(convertedFilter),
+        groupId: convertedFilter.groupId ?? getInitForField(multipleFilters, 'groupId', 1),
+        id: convertedFilter.id ?? getInitForField(multipleFilters, 'id', 0),
+        subGroupId: convertedFilter.subGroupId ?? 1,
+        relationship: convertedFilter.relationship,
       };
     });
   }
@@ -200,22 +194,11 @@ export function EditFilterModal({
         field: undefined,
         operator: undefined,
         value: undefined,
-        groupId: multipleFilters?.length
-          ? Math.max.apply(
-              Math,
-              multipleFilters.map((f) => f.groupId)
-            ) + 1
-          : 1,
-        id: multipleFilters?.length
-          ? Math.max.apply(
-              Math,
-              multipleFilters.map((f) => f.id)
-            ) + 1
-          : 0,
+        groupId: getInitForField(multipleFilters, 'groupId', 1),
+        id: getInitForField(multipleFilters, 'id', 1),
         subGroupId: 1,
       },
     ]);
-    setGroupsCount(1);
   };
 
   const onFieldChange = ([field]: IFieldType[], localFilterIndex: number) => {
@@ -351,6 +334,9 @@ export function EditFilterModal({
   };
 
   const renderParamsEditor = (localFilterIndex: number) => {
+    if (!selectedIndexPattern) {
+      return null;
+    }
     const selectedOperator = localFilters.filter(
       (localFilter) => localFilter.id === localFilterIndex
     )[0]?.operator;
@@ -431,18 +417,19 @@ export function EditFilterModal({
     );
   };
 
-  const onSubmitWithLabel = (filters: Filter[]) => {
+  const onSubmitWithLabel = (appliedFilters: Filter[]) => {
     const queryMetaObj = {
       title: customLabel,
       description: '',
       shouldIncludeFilters: false,
       shouldIncludeTimefilter: false,
-      filters,
+      filters: appliedFilters,
     };
     if (!initialLabel) {
       // if our filters had not alias before then we save them as new fiterSet
       saveFilters(queryMetaObj, true);
     } else {
+      // !!! need to review this side for add filter coz it does not update existing filter
       const curQuery = savedQueries.find(
         (existingQuery) => existingQuery.attributes.title === initialLabel
       );
@@ -456,8 +443,8 @@ export function EditFilterModal({
     }
   };
 
-  const onUpdateFilter = () => {
-    const { $state } = filter;
+  const onSubmitFilters = () => {
+    const { $state } = filters[0];
     if (!$state || !$state.store) {
       return; // typescript validation
     }
@@ -467,16 +454,16 @@ export function EditFilterModal({
       return;
     }
 
-    if (addFilterMode === QUERY_BUILDER.type) {
-      const { index, disabled = false, negate = false } = filter.meta;
+    if (filterBuilderMode === QUERY_BUILDER.type) {
+      const { index, disabled = false, negate = false } = filters[0].meta;
       const newIndex = index || indexPatterns[0].id!;
       let builtCustomFilter = [];
-      if (Array.isArray(JSON.parse(queryDsl))) {
-        builtCustomFilter = JSON.parse(queryDsl).map((query) =>
+      const body = JSON.parse(queryDsl);
+      if (Array.isArray(body)) {
+        builtCustomFilter = body.map((query) =>
           buildCustomFilter(newIndex, query, disabled, negate, alias, $state.store)
         );
       } else {
-        const body = JSON.parse(queryDsl);
         builtCustomFilter = [
           buildCustomFilter(newIndex, body, disabled, negate, alias, $state.store),
         ];
@@ -485,7 +472,7 @@ export function EditFilterModal({
       if (alias) {
         onSubmitWithLabel(builtCustomFilter);
       }
-    } else if (addFilterMode === QUICK_FORM.type && selectedIndexPattern) {
+    } else if (filterBuilderMode === QUICK_FORM.type && selectedIndexPattern) {
       const builtFilters = localFilters.map((localFilter) => {
         if (localFilter.field && localFilter.operator) {
           return buildFilter(
@@ -493,7 +480,7 @@ export function EditFilterModal({
             localFilter.field,
             localFilter.operator.type,
             localFilter.operator.negate,
-            filter.meta.disabled ?? false,
+            filters[0].meta.disabled ?? false,
             localFilter.value ?? '',
             alias,
             $state.store
@@ -504,26 +491,23 @@ export function EditFilterModal({
         const finalFilters = builtFilters.filter(
           (value) => typeof value !== 'undefined'
         ) as Filter[];
-        onMultipleFiltersSubmit(localFilters, finalFilters, groupsCount);
+        // onSubmit(finalFilters);
+
+        onMultipleFiltersSubmit(localFilters, finalFilters);
         if (alias) {
           onSubmitWithLabel(finalFilters);
         }
       }
+    } else if (applySavedQueries && filterBuilderMode === SAVED_FILTERS.type) {
+      applySavedQueries();
     }
-  };
-
-  const onApplyChangesFilter = () => {
-    onUpdateFilter();
-  };
-
-  const onDeliteFilter = () => {
-    onRemoveFilterGroup();
   };
 
   const renderGroupedFilters = () => {
     const groupedFiltersNew = groupBy(localFilters, 'groupId');
     const GroupComponent: JSX.Element[] = [];
     for (const [groupId, groupedFilters] of Object.entries(groupedFiltersNew)) {
+      const groupsCount = groupedFilters.length;
       const filtersInGroup = groupedFilters.length;
       const groupBySubgroups = groupBy(groupedFilters, 'subGroupId');
       const subGroups = [];
@@ -586,7 +570,7 @@ export function EditFilterModal({
                                       }
                                       const newId =
                                         Math.max(
-                                          multipleFilters?.length - 1,
+                                          Number(multipleFilters?.length) - 1,
                                           localFilters[localFilters.length - 1].id
                                         ) + 1;
                                       setLocalFilters([
@@ -618,7 +602,8 @@ export function EditFilterModal({
                                     const subGroupId =
                                       filtersOnGroup.length > 2
                                         ? localfilter?.subGroupId ?? 0
-                                        : localfilter?.subGroupId ?? 0;
+                                        : (localfilter?.subGroupId ?? 0) + 1;
+                                    // : localfilter?.subGroupId ?? 0
                                     const updatedLocalFilter = {
                                       ...localfilter,
                                       relationship: 'AND',
@@ -629,6 +614,7 @@ export function EditFilterModal({
                                         f.id === localfilter.id && f.groupId === Number(groupId)
                                     );
                                     localFilters[idx] = updatedLocalFilter;
+                                    // !!! need to refactor
                                     const maxExistingGroupIdValue: number = Math.max.apply(
                                       Math,
                                       multipleFilters?.map((f) => f.groupId)
@@ -658,9 +644,9 @@ export function EditFilterModal({
                                         subGroupId,
                                       },
                                     ]);
-                                    if (filtersOnGroup.length <= 1) {
-                                      setGroupsCount(groupsCount + 1);
-                                    }
+                                    // if (filtersOnGroup.length <= 1) {
+                                    //   setGroupsCount(groupsCount + 1);
+                                    // }
                                   }}
                                   iconType="plus"
                                   size="s"
@@ -684,9 +670,9 @@ export function EditFilterModal({
                                       const filtersOnGroup = updatedFilters.filter(
                                         (f) => f.groupId === Number(groupId)
                                       );
-                                      if (filtersOnGroup.length < 1) {
-                                        setGroupsCount(groupsCount - 1);
-                                      }
+                                      // if (filtersOnGroup.length < 1) {
+                                      //   setGroupsCount(groupsCount - 1);
+                                      // }
                                       setLocalFilters(updatedFilters);
                                     }}
                                     iconType="trash"
@@ -765,8 +751,9 @@ export function EditFilterModal({
       <EuiModalHeader>
         <EuiModalHeaderTitle>
           <h3>
-            {i18n.translate('data.filter.editFilterModal.headerTitle', {
-              defaultMessage: 'Edit filter',
+            {i18n.translate('data.filter.addFilterModal.headerTitle', {
+              // !!! need to refactor
+              defaultMessage: 'to Add or to Edit that is the question',
             })}
           </h3>
         </EuiModalHeaderTitle>
@@ -778,8 +765,8 @@ export function EditFilterModal({
           {tabs.map(({ label, type }) => (
             <EuiTab
               key={type}
-              isSelected={type === addFilterMode}
-              onClick={() => setAddFilterMode(type)}
+              isSelected={type === filterBuilderMode}
+              onClick={() => setFilterBuilderMode(type)}
               data-test-subj={`${type}FilterMode`}
             >
               {label}
@@ -791,15 +778,14 @@ export function EditFilterModal({
       <EuiHorizontalRule margin="none" />
 
       <EuiModalBody className="kbnQueryBar__filterModalWrapper">
-        <EuiForm className="kbnQueryBar__filterModalForm">
-          {addFilterMode === QUICK_FORM.type && renderGroupedFilters()}
-          {addFilterMode === QUERY_BUILDER.type && renderCustomEditor()}
-        </EuiForm>
+        {filterBuilderMode === QUICK_FORM.type && renderGroupedFilters()}
+        {filterBuilderMode === QUERY_BUILDER.type && renderCustomEditor()}
+        {filterBuilderMode === SAVED_FILTERS.type && savedQueryManagement}
       </EuiModalBody>
       <EuiHorizontalRule margin="none" />
       <EuiModalFooter>
         <EuiFlexGroup gutterSize="xs" justifyContent="flexEnd">
-          {addFilterMode !== 'saved_filters' && (
+          {filterBuilderMode !== SAVED_FILTERS.type && (
             <EuiFlexItem>
               <EuiFormRow
                 label={i18n.translate('data.filter.filterEditor.createCustomLabelInputLabel', {
@@ -832,24 +818,26 @@ export function EditFilterModal({
                 </EuiButtonEmpty>
               </EuiFlexItem>
 
-              <EuiFlexItem grow={false}>
-                <EuiButton
-                  iconType="trash"
-                  onClick={onDeliteFilter}
-                  data-test-subj="canvasCustomElementForm-submit"
-                  color="danger"
-                >
-                  {i18n.translate('data.filter.addFilterModal.deleteFilterBtnLabel', {
-                    defaultMessage: 'Delete filter',
-                  })}
-                </EuiButton>
-              </EuiFlexItem>
+              {onRemoveFilterGroup && (
+                <EuiFlexItem grow={false}>
+                  <EuiButton
+                    iconType="trash"
+                    onClick={onRemoveFilterGroup}
+                    data-test-subj="canvasCustomElementForm-submit"
+                    color="danger"
+                  >
+                    {i18n.translate('data.filter.addFilterModal.deleteFilterBtnLabel', {
+                      defaultMessage: 'Delete filter',
+                    })}
+                  </EuiButton>
+                </EuiFlexItem>
+              )}
 
               <EuiFlexItem grow={false}>
                 <EuiButton
-                  iconType="checkInCircleFilled"
+                  iconType="plusInCircleFilled"
                   fill
-                  onClick={onApplyChangesFilter}
+                  onClick={onSubmitFilters}
                   data-test-subj="canvasCustomElementForm-submit"
                   disabled={submitDisabled}
                 >

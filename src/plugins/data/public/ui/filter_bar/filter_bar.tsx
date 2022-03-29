@@ -24,7 +24,8 @@ import { FilterExpressionItem } from './filter_expression_item';
 import { EditFilterModal, FilterGroup } from '../query_string_input/edit_filter_modal';
 import { mapAndFlattenFilters } from '../../query/filter_manager/lib/map_and_flatten_filters';
 import { SavedQueryMeta } from '../saved_query_form';
-import { QUERY_BUILDER } from '../query_string_input/add_filter_modal';
+import { QUERY_BUILDER, QUICK_FORM } from '../query_string_input/filter_builder_modal';
+import { FilterBuilderModal } from '../query_string_input/filter_builder_modal';
 
 interface Props {
   filters: Filter[];
@@ -297,13 +298,13 @@ const FilterBarUI = React.memo(function FilterBarUI(props: Props) {
   }
 
   function renderEditFilter() {
-    const currentEditFilters: Filter[] = [];
+    const currentEditFilters: Filter[] = []; // for filters working on runtime
     groupIds?.forEach((groupId) => {
       const filteredFilters = props.multipleFilters.filter((filter) => filter.groupId === groupId);
       currentEditFilters.push(...filteredFilters);
     });
 
-    const saerchedFilters: Filter[] = [];
+    const saerchedFilters: Filter[] = []; // for saved filters or so
 
     currentEditFilters.forEach((filter) => {
       props.filters.forEach((f) => {
@@ -313,26 +314,27 @@ const FilterBarUI = React.memo(function FilterBarUI(props: Props) {
       });
     });
 
-    const queryBuilderTab = QUERY_BUILDER;
     const tabs = selectedSavedFiltersGroupIds.some((g) => groupIds.includes(g))
-      ? [queryBuilderTab]
-      : undefined;
+      ? [QUERY_BUILDER]
+      : [QUICK_FORM, QUERY_BUILDER];
 
     return (
       <EuiFlexItem grow={false}>
         {props.isEditFilterModalOpen && (
-          <EditFilterModal
+          // <EditFilterModal
+          <FilterBuilderModal
             onSubmit={onEditMultipleFilters}
             onMultipleFiltersSubmit={onEditMultipleFiltersANDOR}
             onCancel={() => props.toggleEditFilterModal?.(false)}
-            filter={saerchedFilters[0]}
-            currentEditFilters={currentEditFilters}
-            filters={saerchedFilters}
+            // filter={saerchedFilters[0]}
+            // currentEditFilters={currentEditFilters}
+            // filters={saerchedFilters}
+            filters={currentEditFilters}
             multipleFilters={props.multipleFilters}
             indexPatterns={props.indexPatterns!}
             onRemoveFilterGroup={onDeleteFilterGroup}
             timeRangeForSuggestionsOverride={props.timeRangeForSuggestionsOverride}
-            initialAddFilterMode={undefined}
+            initialAddFilterMode={tabs[0].type}
             saveFilters={props.onFilterSave}
             savedQueryService={props.savedQueryService}
             tabs={tabs}

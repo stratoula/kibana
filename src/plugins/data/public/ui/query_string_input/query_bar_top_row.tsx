@@ -43,6 +43,7 @@ import { NoDataPopover } from './no_data_popover';
 import { shallowEqual } from '../../utils/shallow_equal';
 import { AddFilterModal, FilterGroup } from './add_filter_modal';
 import { SavedQueryMeta } from '../saved_query_form';
+import { FilterBuilderModal } from './filter_builder_modal';
 
 const SuperDatePicker = React.memo(
   EuiSuperDatePicker as any
@@ -468,9 +469,10 @@ export const QueryBarTopRow = React.memo(
         <EuiFlexItem grow={false}>
           {button}
           {props.isAddFilterModalOpen && (
-            <AddFilterModal
+            // <AddFilterModal
+            <FilterBuilderModal
               onCancel={() => props.toggleAddFilterModal?.(false)}
-              filter={newFilter}
+              filters={[newFilter]}
               indexPatterns={props.indexPatterns!}
               onSubmit={onAddMultipleFilters}
               onMultipleFiltersSubmit={onAddMultipleFiltersANDOR}

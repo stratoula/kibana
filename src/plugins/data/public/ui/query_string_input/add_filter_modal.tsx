@@ -47,32 +47,9 @@ import { RangeValueInput } from '../filter_bar/filter_editor/range_value_input';
 import { SavedQueryMeta } from '../saved_query_form';
 
 import { IIndexPattern, IFieldType } from '../..';
+import { IModalTab, QUERY_BUILDER, QUICK_FORM, SAVED_FILTERS } from './filter_builder_modal';
 
-export interface ITab {
-  type: string;
-  label: string;
-}
-
-export const QUICK_FORM: ITab = {
-  type: 'quick_form',
-  label: i18n.translate('data.filter.filterEditor.quickFormLabel', {
-    defaultMessage: 'Quick form',
-  }),
-};
-export const QUERY_BUILDER: ITab = {
-  type: 'query_builder',
-  label: i18n.translate('data.filter.filterEditor.queryBuilderLabel', {
-    defaultMessage: 'Query builder',
-  }),
-};
-export const SAVED_FILTERS: ITab = {
-  type: 'saved_filters',
-  label: i18n.translate('data.filter.filterEditor.savedFiltersLabel', {
-    defaultMessage: 'Saved filters',
-  }),
-};
-
-const tabs: ITab[] = [QUICK_FORM, QUERY_BUILDER, SAVED_FILTERS];
+const defaultTabs: IModalTab[] = [QUICK_FORM, QUERY_BUILDER, SAVED_FILTERS];
 
 export interface FilterGroup {
   field: IFieldType | undefined;
@@ -710,7 +687,7 @@ export function AddFilterModal({
 
       <EuiModalHeader style={{ paddingBottom: 0, paddingTop: 0 }}>
         <EuiTabs size="m" bottomBorder={false}>
-          {tabs.map(({ label, type }) => (
+          {defaultTabs.map(({ label, type }) => (
             <EuiTab
               key={type}
               isSelected={type === addFilterMode}
