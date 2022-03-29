@@ -741,6 +741,15 @@ export function FilterBuilderModal({
     return GroupComponent;
   };
 
+  // !!! need to refactor
+  const modalTitle = savedQueryManagement
+    ? i18n.translate('data.filter.addFilterModal.headerTitle', {
+        defaultMessage: 'Add filter',
+      })
+    : i18n.translate('data.filter.editFilterModal.headerTitle', {
+        defaultMessage: 'Edit filter',
+      });
+
   return (
     <EuiModal
       style={{ minWidth: 992 }}
@@ -750,12 +759,7 @@ export function FilterBuilderModal({
     >
       <EuiModalHeader>
         <EuiModalHeaderTitle>
-          <h3>
-            {i18n.translate('data.filter.addFilterModal.headerTitle', {
-              // !!! need to refactor
-              defaultMessage: 'to Add or to Edit that is the question',
-            })}
-          </h3>
+          <h3>{modalTitle}</h3>
         </EuiModalHeaderTitle>
         {renderIndexPatternInput()}
       </EuiModalHeader>
