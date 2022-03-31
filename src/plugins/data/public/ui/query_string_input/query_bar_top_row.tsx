@@ -468,7 +468,7 @@ export const QueryBarTopRow = React.memo(
       return (
         <EuiFlexItem grow={false}>
           {button}
-          {props.isAddFilterModalOpen && (
+          {/* {props.isAddFilterModalOpen && (
             // <AddFilterModal
             <FilterBuilderModal
               onCancel={() => props.toggleAddFilterModal?.(false)}
@@ -484,7 +484,7 @@ export const QueryBarTopRow = React.memo(
               saveFilters={props.onNewFiltersSave}
               savedQueryService={props.savedQueryService}
             />
-          )}
+          )} */}
         </EuiFlexItem>
       );
     }

@@ -117,7 +117,7 @@ const FilterBarUI = React.memo(function FilterBarUI(props: Props) {
 
   const onEditFilterClick = (groupIds: []) => {
     setGroupIds(groupIds);
-    props.toggleEditFilterModal?.(true);
+    props.toggleEditFilterModal?.(true, groupIds);
   };
 
   const onDeleteFilterGroup = () => {
@@ -439,7 +439,7 @@ const FilterBarUI = React.memo(function FilterBarUI(props: Props) {
           {renderMultipleFilters()}
           {/*{renderSelectedSavedQueries()}*/}
           {props.multipleFilters.length === 0 && renderItems()}
-          {renderEditFilter()}
+          {/* {renderEditFilter()} */}
         </EuiFlexGroup>
       </EuiFlexItem>
     </EuiFlexGroup>

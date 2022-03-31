@@ -93,6 +93,15 @@ export interface FilterGroup {
   subGroupId?: number;
 }
 
+export function getInitForField(filtersGroups: any[], field: string, minValue: number) {
+  return filtersGroups.length
+    ? Math.max.apply(
+        Math,
+        filtersGroups.map((f) => f[field])
+      ) + 1
+    : minValue;
+}
+
 export function FilterBuilderModal({
   onSubmit,
   onMultipleFiltersSubmit,
@@ -103,7 +112,7 @@ export function FilterBuilderModal({
   indexPatterns,
   timeRangeForSuggestionsOverride,
   savedQueryManagement,
-  initialAddFilterMode,
+  initialFilterBuilderMode,
   saveFilters,
   savedQueryService,
   initialLabel, // ?? need to think deeply
@@ -119,7 +128,7 @@ export function FilterBuilderModal({
   indexPatterns: IIndexPattern[];
   timeRangeForSuggestionsOverride?: boolean;
   savedQueryManagement?: JSX.Element;
-  initialAddFilterMode?: string;
+  initialFilterBuilderMode?: string;
   saveFilters: (savedQueryMeta: SavedQueryMeta, saveAsNew?: boolean) => Promise<void>;
   savedQueryService: SavedQueryService;
   initialLabel: string;
@@ -130,7 +139,7 @@ export function FilterBuilderModal({
     getIndexPatternFromFilter(filters[0], indexPatterns)
   );
   const [filterBuilderMode, setFilterBuilderMode] = useState<string>(
-    initialAddFilterMode ?? QUICK_FORM.type ?? QUERY_BUILDER.type
+    initialFilterBuilderMode ?? QUICK_FORM.type ?? QUERY_BUILDER.type
   );
   const [customLabel, setCustomLabel] = useState<string>(initialLabel || '');
   const [queryDsl, setQueryDsl] = useState<string>(
@@ -155,15 +164,6 @@ export function FilterBuilderModal({
     };
     fetchQueries();
   }, [savedQueryService]);
-
-  function getInitForField(filtersGroups: any[], field: string, minValue: number) {
-    return filtersGroups.length
-      ? Math.max.apply(
-          Math,
-          filtersGroups.map((f) => f[field])
-        ) + 1
-      : minValue;
-  }
 
   function convertFilterToFilterGroup(convertibleFilters: Filter[]): FilterGroup[] {
     return convertibleFilters.map((convertedFilter) => {

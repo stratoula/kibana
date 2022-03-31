@@ -32,17 +32,31 @@ import {
   toggleFilterDisabled,
   toggleFilterNegated,
   unpinFilter,
+  buildEmptyFilter,
 } from '@kbn/es-query';
 import { withKibana, KibanaReactContextValue } from '../../../../kibana_react/public';
 
 import QueryBarTopRow from '../query_string_input/query_bar_top_row';
-import type { SavedQueryAttributes, TimeHistoryContract, SavedQuery } from '../../query';
+import {
+  SavedQueryAttributes,
+  TimeHistoryContract,
+  SavedQuery,
+  mapAndFlattenFilters,
+} from '../../query';
 import { IDataPluginServices } from '../../types';
-import { TimeRange, IIndexPattern } from '../../../common';
+import { TimeRange, IIndexPattern, UI_SETTINGS } from '../../../common';
 import { FilterBar } from '../filter_bar/filter_bar';
 import { SavedQueryMeta, SaveQueryForm } from '../saved_query_form';
 import { SavedQueryManagementComponent } from '../saved_query_management';
 import { FilterSetMenu } from '../saved_query_management/filter_set_menu';
+import {
+  FilterBuilderModal,
+  FilterGroup,
+  getInitForField,
+  QUERY_BUILDER,
+  QUICK_FORM,
+  SAVED_FILTERS,
+} from '../query_string_input/filter_builder_modal';
 
 const LOCAL_STORAGE_TIMEFILTER_OVERRIDE_MODAL_HIDDEN = 'TIMEFILTER_OVERRIDE_MODAL_HIDDEN';
 
@@ -123,6 +137,8 @@ interface State {
   editFilterMode?: string;
   filtersIdsFromSavedQueries?: string[];
   overrideTimeFilterModalShow: boolean;
+  filtersForModal: Filter[];
+  editFiltersGroupIds: number[];
 }
 
 class SearchBarUI extends Component<SearchBarProps, State> {
@@ -212,7 +228,6 @@ class SearchBarUI extends Component<SearchBarProps, State> {
             id: idx,
             subGroupId: 1,
             relationship: undefined,
-            groupsCount: 1,
           })),
         ]
       : [],
@@ -225,6 +240,8 @@ class SearchBarUI extends Component<SearchBarProps, State> {
     editFilterMode: 'quick_form',
     filtersIdsFromSavedQueries: [],
     overrideTimeFilterModalShow: false,
+    filtersForModal: [] as Filter[],
+    editFiltersGroupIds: [],
   };
 
   public isDirty = () => {
@@ -564,17 +581,29 @@ class SearchBarUI extends Component<SearchBarProps, State> {
   };
 
   public toggleAddFilterModal = (value: boolean, addFilterMode?: string) => {
+    const isPinned = this.services.uiSettings!.get(UI_SETTINGS.FILTERS_PINNED_BY_DEFAULT);
+    const [indexPattern] = this.props.indexPatterns || [];
+    const index = indexPattern && indexPattern.id;
+    const emptyFilter = buildEmptyFilter(isPinned, index);
     this.setState({
       isAddFilterModalOpen: value,
       addFilterMode: addFilterMode || 'quick_form',
+      filtersForModal: [emptyFilter],
     });
   };
 
-  public toggleEditFilterModal = (value: boolean, editFilterMode?: string) => {
-    this.setState({
+  public toggleEditFilterModal = (value: boolean, groupIdsForModal?: number[]) => {
+    let newState: any = {
       isEditFilterModalOpen: value,
-      editFilterMode: editFilterMode || 'quick_form',
-    });
+      // editFilterMode: editFilterMode || 'quick_form',
+    };
+    if (groupIdsForModal) {
+      const filtersForModal = this.state.multipleFilters.filter((f) =>
+        groupIdsForModal.includes(+f.groupId)
+      );
+      newState = { ...newState, filtersForModal };
+    }
+    this.setState(newState);
   };
 
   public toggleFilterSetPopover = (value: boolean) => {
@@ -763,6 +792,62 @@ class SearchBarUI extends Component<SearchBarProps, State> {
       );
     }
 
+    const filterBuilderModal = () => {
+      let onSubmit = this.onAddMultipleFilters;
+      let onMultipleFiltersSubmit = this.onAddMultipleFiltersANDOR;
+      let onCancel = () => this.toggleAddFilterModal?.(false);
+      let tabs = [QUICK_FORM, QUERY_BUILDER, SAVED_FILTERS];
+      let initialLabel = '';
+      let onRemoveFilterGroup;
+      let applySavedQueries: undefined | (() => void) = () => {
+        onCancel();
+        this.applyTimeFilterOverrideModal();
+      };
+      let savedQueryMange = savedQueryManagement;
+      let initialFilterBuilderMode = this.state.addFilterMode;
+
+      if (this.state.isEditFilterModalOpen) {
+        onSubmit = this.onEditMultipleFilters;
+        onMultipleFiltersSubmit = this.onEditMultipleFiltersANDOR;
+        onCancel = () => this.toggleEditFilterModal?.(false);
+        tabs = [QUICK_FORM, QUERY_BUILDER];
+        initialLabel = this.state.filtersForModal[0].meta.alias ?? '';
+        onRemoveFilterGroup = this.onRemoveFilterGroup;
+        applySavedQueries = undefined;
+        savedQueryMange = undefined;
+        initialFilterBuilderMode = this.state.editFilterMode;
+      }
+
+      return (
+        (this.state.isAddFilterModalOpen || this.state.isEditFilterModalOpen) && (
+          <FilterBuilderModal
+            onSubmit={onSubmit}
+            onMultipleFiltersSubmit={onMultipleFiltersSubmit}
+            onCancel={onCancel}
+            filters={this.state.filtersForModal}
+            multipleFilters={this.state.multipleFilters}
+            indexPatterns={this.props.indexPatterns!}
+            timeRangeForSuggestionsOverride={timeRangeForSuggestionsOverride}
+            initialFilterBuilderMode={initialFilterBuilderMode}
+            savedQueryService={this.savedQueryService}
+            saveFilters={(savedQueryMeta: SavedQueryMeta, saveAsNew = false) =>
+              this.onSave(savedQueryMeta, saveAsNew, {
+                language: this.state.query!.language,
+                query: '',
+              })
+            }
+            tabs={tabs}
+            initialLabel={initialLabel} // give it if opened edit for saved filter
+            // only for add modal
+            applySavedQueries={applySavedQueries}
+            savedQueryManagement={savedQueryMange}
+            // only for edit modal
+            onRemoveFilterGroup={onRemoveFilterGroup}
+          />
+        )
+      );
+    };
+
     const globalQueryBarClasses = classNames('globalQueryBar', {
       'globalQueryBar--inPage': this.props.displayStyle === 'inPage',
     });
@@ -771,6 +856,7 @@ class SearchBarUI extends Component<SearchBarProps, State> {
       <div className={globalQueryBarClasses} data-test-subj="globalQueryBar">
         {queryBar}
         {filterBar}
+        {filterBuilderModal()}
 
         {this.state.showSaveQueryModal ? (
           <SaveQueryForm
@@ -819,6 +905,147 @@ class SearchBarUI extends Component<SearchBarProps, State> {
       return savedQueryManagement;
     }
   );
+
+  private onAddMultipleFilters = (selectedFilters: Filter[]) => {
+    const filters = [...this.props.filters!, ...selectedFilters];
+    this.props.onFiltersUpdated?.(filters);
+
+    const maxGroupId = this.state.multipleFilters.length
+      ? Math.max.apply(
+          Math,
+          this.state.multipleFilters.map((f) => f.groupId)
+        )
+      : 0;
+    const maxId = this.state.multipleFilters.length
+      ? Math.max.apply(
+          Math,
+          this.state.multipleFilters.map((f) => f.id)
+        )
+      : -1;
+    const multipleFilters = [
+      ...this.state.multipleFilters,
+      ...selectedFilters.map((filter, idx) => ({
+        ...filter,
+        groupId: maxGroupId + 1 + idx,
+        id: maxId + 1 + idx,
+        subGroupId: 1,
+        relationship: undefined,
+      })),
+    ];
+    this.onMultipleFiltersUpdated?.(multipleFilters);
+    this.toggleAddFilterModal?.(false);
+  };
+
+  private onEditMultipleFilters = (selectedFilters: Filter[]) => {
+    // const editedFilters = this.state.multipleFilters.filter((f) => groupIds.includes(f.groupId));
+    const oldFilters = this.props.filters?.filter(
+      (filter) =>
+        !this.state.filtersForModal.find((editedFilter) =>
+          isEqual(filter.query, editedFilter.query)
+        )
+    );
+    const updatedFilters = [...oldFilters!, ...selectedFilters];
+    this.props?.onFiltersUpdated?.(updatedFilters);
+
+    const editedFilterGroupId = this.state.filtersForModal[0].groupId;
+    const multipleFilters = [...this.state.multipleFilters];
+    const idxEditedFilterInMultiple = this.state.multipleFilters.findIndex(
+      (f) => Number(f.groupId) === Number(editedFilterGroupId)
+    );
+    const initGroupId = getInitForField(this.state.multipleFilters, 'groupId', 1);
+    const initId = getInitForField(this.state.multipleFilters, 'id', 0);
+    const newMultipleFilters = selectedFilters.map((filter, idx) => {
+      return {
+        ...filter,
+        groupId: initGroupId + idx,
+        id: initId + idx,
+        relationship: 'AND',
+        subGroupId: 1,
+      };
+    });
+
+    multipleFilters.splice(
+      idxEditedFilterInMultiple,
+      this.state.filtersForModal.length,
+      ...newMultipleFilters
+    );
+    const updatedMultipleFilters = this.sortFiltersByGroupId(multipleFilters);
+
+    this?.onMultipleFiltersUpdated?.(updatedMultipleFilters);
+    this.toggleEditFilterModal?.(false);
+  };
+
+  private onAddMultipleFiltersANDOR = (selectedFilters: FilterGroup[], buildFilters: Filter[]) => {
+    const mappedFilters = mapAndFlattenFilters(buildFilters);
+    const mergedFilters = mappedFilters.map((filter, idx) => {
+      return {
+        ...filter,
+        groupId: selectedFilters[idx].groupId,
+        id: selectedFilters[idx].id,
+        relationship: selectedFilters[idx].relationship,
+        subGroupId: selectedFilters[idx].subGroupId,
+      };
+    });
+
+    this.toggleAddFilterModal?.(false);
+    this.onMultipleFiltersUpdated?.([...this.state.multipleFilters, ...mergedFilters]);
+
+    const filters = [...this.props.filters!, ...buildFilters];
+    this.props?.onFiltersUpdated?.(filters);
+  };
+
+  private onEditMultipleFiltersANDOR = (selectedFilters: FilterGroup[], buildFilters: Filter[]) => {
+    // const editedFilters = props.multipleFilters.filter((f) => groupIds.includes(f.groupId));
+    const oldFilters = this.props.filters?.filter(
+      (filter) =>
+        !this.state.filtersForModal.find((editedFilter) =>
+          isEqual(filter.query, editedFilter.query)
+        )
+    );
+    const updatedFilters = [...oldFilters!, ...buildFilters];
+    this.props?.onFiltersUpdated?.(updatedFilters);
+
+    const mappedFilters = mapAndFlattenFilters(buildFilters);
+    const mergedFilters = mappedFilters.map((filter, idx) => {
+      return {
+        ...filter,
+        groupId: selectedFilters[idx].groupId,
+        id: selectedFilters[idx].id,
+        relationship: selectedFilters[idx].relationship,
+        subGroupId: selectedFilters[idx].subGroupId,
+      };
+    });
+
+    const multipleFilters = [...this.state.multipleFilters];
+
+    const indexOfCurFilter = multipleFilters.findIndex(
+      (f) => Number(f.groupId) === Number(this.state.filtersForModal[0].groupId)
+    );
+    multipleFilters.splice(indexOfCurFilter, this.state.filtersForModal.length, ...mergedFilters);
+    const updatedMultipleFilters = this.sortFiltersByGroupId(multipleFilters);
+
+    this?.onMultipleFiltersUpdated?.(updatedMultipleFilters);
+    this.toggleEditFilterModal?.(false);
+  };
+
+  private onRemoveFilterGroup() {}
+
+  private sortFiltersByGroupId(multipleFilters: Filter[]) {
+    // when user adds new filters in edit modal they should appear near of editing filter
+    let gId: number = 0;
+    let reserveGroupId: number; // for cases where multiple filters have same groupId
+    return multipleFilters.map((filter, idx) => {
+      if (filter.groupId !== reserveGroupId) {
+        reserveGroupId = filter.groupId;
+        gId++;
+      }
+      return {
+        ...filter,
+        groupId: gId,
+        id: idx,
+      };
+    });
+  }
 }
 
 // Needed for React.lazy
