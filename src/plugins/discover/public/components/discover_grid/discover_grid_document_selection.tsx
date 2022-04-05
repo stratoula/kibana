@@ -13,10 +13,12 @@ import {
   EuiContextMenuPanel,
   copyToClipboard,
   EuiPopover,
+  EuiToolTip,
   EuiCheckbox,
   EuiDataGridCellValueElementProps,
 } from '@elastic/eui';
 import { FormattedMessage } from '@kbn/i18n-react';
+import { i18n } from '@kbn/i18n';
 import { euiLightVars as themeLight, euiDarkVars as themeDark } from '@kbn/ui-theme';
 import { DiscoverGridContext } from './discover_grid_context';
 import { ElasticSearchHit } from '../../types';
@@ -80,12 +82,16 @@ export function DiscoverGridDocumentToolbarBtn({
   setSelectedDocs: (value: string[]) => void;
 }) {
   const [isSelectionPopoverOpen, setIsSelectionPopoverOpen] = useState(false);
+  const [copyTextTooltip, setCopyTextTooltip] = useState('');
 
   const copy = useCallback(() => {
     const textToCopy = rows
       ? JSON.stringify(rows.filter((row) => selectedDocs.includes(getDocId(row))))
       : '';
-    copyToClipboard(textToCopy);
+    const isCopied = copyToClipboard(textToCopy);
+    if (isCopied) {
+      setCopyTextTooltip('Copied');
+    }
   }, [rows, selectedDocs]);
 
   const getMenuItems = useCallback(() => {
@@ -119,10 +125,16 @@ export function DiscoverGridDocumentToolbarBtn({
         </EuiContextMenuItem>
       ),
       <EuiContextMenuItem key="copyJSON" icon="copyClipboard" onClick={copy}>
-        <FormattedMessage
-          id="discover.copyToClipboardJSON"
-          defaultMessage="Copy documents to clipboard (JSON)"
-        />
+        <EuiToolTip
+          position="top"
+          content={copyTextTooltip}
+          onMouseOut={() => setCopyTextTooltip('')}
+        >
+          <FormattedMessage
+            id="discover.copyToClipboardJSON"
+            defaultMessage="Copy documents to clipboard (JSON)"
+          />
+        </EuiToolTip>
       </EuiContextMenuItem>,
       <EuiContextMenuItem
         data-test-subj="dscGridClearSelectedDocuments"
@@ -137,7 +149,7 @@ export function DiscoverGridDocumentToolbarBtn({
         <FormattedMessage id="discover.clearSelection" defaultMessage="Clear selection" />
       </EuiContextMenuItem>,
     ];
-  }, [copy, isFilterActive, setIsFilterActive, setSelectedDocs]);
+  }, [copy, copyTextTooltip, isFilterActive, setIsFilterActive, setSelectedDocs]);
 
   const toggleSelectionToolbar = useCallback(
     () => setIsSelectionPopoverOpen((prevIsOpen) => !prevIsOpen),
