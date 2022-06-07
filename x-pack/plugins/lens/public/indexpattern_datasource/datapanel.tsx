@@ -8,6 +8,7 @@
 import './datapanel.scss';
 import { uniq, groupBy } from 'lodash';
 import React, { useState, memo, useCallback, useMemo, useRef, useEffect } from 'react';
+import usePrevious from 'react-use/lib/usePrevious';
 import {
   EuiFlexGroup,
   EuiFlexItem,
@@ -341,6 +342,7 @@ export const InnerIndexPatternDataPanel = function InnerIndexPatternDataPanel({
   const availableFieldTypes = uniq(allFields.map(({ type }) => type)).filter(
     (type) => type in fieldTypeNames
   );
+  const previousIndexPatternId = usePrevious(currentIndexPatternId);
 
   const fieldInfoUnavailable =
     existenceFetchFailed || existenceFetchTimeout || currentIndexPattern.hasRestrictions;
@@ -517,6 +519,12 @@ export const InnerIndexPatternDataPanel = function InnerIndexPatternDataPanel({
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (currentIndexPatternId !== previousIndexPatternId) {
+      clearLocalState();
+    }
+  }, [currentIndexPatternId, previousIndexPatternId]);
 
   const refreshFieldList = useCallback(async () => {
     const newlyMappedIndexPattern = await loadIndexPatterns({
