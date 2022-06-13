@@ -153,7 +153,22 @@ export function AddFilterModal({
 
   const onDragEnd = useCallback(
     (result: DropResult, provided: ResponderProvided) => {
+      if (result.combine) {
+        console.log('combine', result);
+        const [sourceGroup, sourceSubGroup, sourceId] = result.draggableId.split('-');
+        const [combineGroup, combineSubGroup, combineId] = result.combine.draggableId.split('-');
+        const [destGroup, destSubGroup] = result.combine.droppableId.split('-');
+        const targetIndex = localFilters.findIndex((f) => f.id === +combineId);
+        const updatedFilters = [...localFilters];
+        const targetFilter = updatedFilters[targetIndex];
+        updatedFilters[targetIndex].relationship = 'OR';
+        updatedFilters[+sourceId].groupId = targetFilter.groupId;
+        updatedFilters[+sourceId].subGroupId = targetFilter!.subGroupId + 1;
+        setLocalFilters(updatedFilters);
+      }
+
       if (result.destination) {
+        console.log('destination', result);
         const [sourceGroup, sourceSubGroup, sourceId] = result.draggableId.split('-');
         const [destGroup, destSubGroup] = result.destination.droppableId.split('-');
         const targetIndex = localFilters.findIndex((f) => f.id === +sourceId);
@@ -513,8 +528,6 @@ export function AddFilterModal({
         const finalFilters = builtFilters.filter(
           (value) => typeof value !== 'undefined'
         ) as Filter[];
-        // onSubmit(finalFilters);
-
         onMultipleFiltersSubmit(localFilters, finalFilters);
         if (alias) {
           saveFilters({
@@ -634,12 +647,6 @@ export function AddFilterModal({
                                       filtersOnGroup.length > 2
                                         ? localfilter?.subGroupId ?? 0
                                         : (localfilter?.subGroupId ?? 0) + 1;
-                                    // const subGroupId =
-                                    //   filtersOnGroup.length > 2
-                                    //     ? localfilter?.subGroupId ?? 0
-                                    //     : filtersOnGroup.length > 1
-                                    //     ? (localfilter?.subGroupId ?? 0) + 1
-                                    //     : 1;
                                     const updatedLocalFilter = {
                                       ...localfilter,
                                       relationship: 'AND',
@@ -738,6 +745,7 @@ export function AddFilterModal({
                   <EuiDroppable
                     spacing="s"
                     droppableId={`${subGroup[0].groupId}-${subGroup[0].subGroupId}`}
+                    isCombineEnabled
                   >
                     {group}
                   </EuiDroppable>
