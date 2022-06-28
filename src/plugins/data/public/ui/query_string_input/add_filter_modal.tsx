@@ -142,9 +142,9 @@ export function AddFilterModal({
         : 1,
       id: multipleFilters?.length
         ? Math.max.apply(
-            Math,
-            multipleFilters.map((f) => f.id)
-          ) + 1
+          Math,
+          multipleFilters.map((f) => f.id)
+        ) + 1
         : 0,
       subGroupId: 1,
       relationship: undefined,
@@ -562,6 +562,7 @@ export function AddFilterModal({
             filtersInGroup > 1 && groupsCount > 1 ? 'kbnQueryBar__filterModalGroups' : ''
           )}
           paddingSize="s"
+          hasShadow={false}
         >
           {subGroups.map((subGroup, subGroupIdx) => {
             const classes =
@@ -583,9 +584,9 @@ export function AddFilterModal({
                     hasInteractiveChildren={true}
                   >
                     {(provided) => (
-                      <EuiPanel paddingSize="s">
-                        <EuiFlexGroup alignItems="center">
-                          <EuiFlexItem grow={false} {...provided.dragHandleProps}>
+                      <EuiPanel paddingSize="s" hasBorder={true}>
+                        <EuiFlexGroup alignItems="center" {...provided.dragHandleProps} aria-label="Drag handle">
+                          <EuiFlexItem grow={false}>
                             <EuiIcon type="grab" size="s" />
                           </EuiFlexItem>
 
