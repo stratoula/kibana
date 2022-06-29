@@ -34,16 +34,17 @@ export const EmptyPlaceholder = ({
   dataTestSubj = 'emptyPlaceholder',
   className,
 }: EmptyPlaceholderProps) => (
-  <EuiText
-    data-test-subj={dataTestSubj}
-    css={style}
-    className={className}
-    textAlign="center"
-    color="subdued"
-    size="xs"
-  >
+  <div css={style}>
     <EuiIcon type={icon} color={iconColor} size="l" />
     <EuiSpacer size="s" />
-    <p>{message}</p>
-  </EuiText>
+    <EuiText
+      data-test-subj={dataTestSubj}
+      className={className}
+      textAlign="center"
+      color="subdued"
+      size="xs"
+    >
+      <p>{message}</p>
+    </EuiText>
+  </div>
 );
