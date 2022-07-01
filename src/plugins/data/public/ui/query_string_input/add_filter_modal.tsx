@@ -558,9 +558,9 @@ export function AddFilterModal({
       const temp = (
         <EuiPanel
           color="subdued"
-          className={classNames(
-            filtersInGroup > 1 && groupsCount > 1 ? 'kbnQueryBar__filterModalGroups' : ''
-          )}
+          // className={classNames(
+          //   filtersInGroup > 1 && groupsCount > 1 ? 'kbnQueryBar__filterModalGroups' : ''
+          // )}
           paddingSize="s"
           hasShadow={false}
         >
@@ -742,7 +742,9 @@ export function AddFilterModal({
             });
             return (
               <>
-                <div className={classNames(classes)}>
+                <div
+                // className={classNames(classes)}
+                >
                   <EuiDroppable
                     spacing="s"
                     droppableId={`${subGroup[0].groupId}-${subGroup[0].subGroupId}`}
