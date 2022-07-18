@@ -154,7 +154,6 @@ export function AddFilterModal({
   const onDragEnd = useCallback(
     (result: DropResult, provided: ResponderProvided) => {
       if (result.combine) {
-        console.log('combine', result);
         const [sourceGroup, sourceSubGroup, sourceId] = result.draggableId.split('-');
         const [combineGroup, combineSubGroup, combineId] = result.combine.draggableId.split('-');
         const [destGroup, destSubGroup] = result.combine.droppableId.split('-');
@@ -168,7 +167,6 @@ export function AddFilterModal({
       }
 
       if (result.destination) {
-        console.log('destination', result);
         const [sourceGroup, sourceSubGroup, sourceId] = result.draggableId.split('-');
         const [destGroup, destSubGroup] = result.destination.droppableId.split('-');
         const targetIndex = localFilters.findIndex((f) => f.id === +sourceId);
@@ -558,9 +556,9 @@ export function AddFilterModal({
       const temp = (
         <EuiPanel
           color="subdued"
-          // className={classNames(
-          //   filtersInGroup > 1 && groupsCount > 1 ? 'kbnQueryBar__filterModalGroups' : ''
-          // )}
+          className={classNames(
+            filtersInGroup > 1 && groupsCount > 1 ? 'kbnQueryBar__filterModalGroups' : ''
+          )}
           paddingSize="s"
           hasShadow={false}
         >
@@ -585,7 +583,11 @@ export function AddFilterModal({
                   >
                     {(provided) => (
                       <EuiPanel paddingSize="s" hasBorder={true}>
-                        <EuiFlexGroup alignItems="center" {...provided.dragHandleProps} aria-label="Drag handle">
+                        <EuiFlexGroup
+                          alignItems="center"
+                          {...provided.dragHandleProps}
+                          aria-label="Drag handle"
+                        >
                           <EuiFlexItem grow={false}>
                             <EuiIcon type="grab" size="s" />
                           </EuiFlexItem>
@@ -742,9 +744,7 @@ export function AddFilterModal({
             });
             return (
               <>
-                <div
-                // className={classNames(classes)}
-                >
+                <div className={classNames(classes)}>
                   <EuiDroppable
                     spacing="s"
                     droppableId={`${subGroup[0].groupId}-${subGroup[0].subGroupId}`}
