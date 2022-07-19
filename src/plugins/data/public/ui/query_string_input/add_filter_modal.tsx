@@ -475,25 +475,54 @@ export function AddFilterModal({
   };
 
   class _FilterGroup {
-    children: [string, FilterGroup[]][]
+    id: number
+    children: _FilterGroup[]
+    // TODO delete fields below
+    groupId: number
+    subGroupId: number
+    relationship: string
+    toFilterGroup: FilterGroup
 
-    constructor(children: [string, FilterGroup[]][]) {
+    constructor(id: number, children: _FilterGroup[]) {
+      this.id = id
       this.children = children
+      this.groupId = id
+      this.subGroupId = id
+      this.relationship = 'AND'
+      this.toFilterGroup = {
+        field: undefined,
+        operator: undefined,
+        value: undefined,
+        groupId: id,
+        id: id,
+        relationship: this.relationship,
+        subGroupId: id
+      }
     }
   }
 
   const renderGroupedFilters = () => {
-    const groupedFiltersNew = groupBy(localFilters, 'groupId');
-    return renderGroupedFilters1(new _FilterGroup(Object.entries(groupedFiltersNew)))
+    const rootChildren: _FilterGroup[] = []
+    for (const [groupId, group] of Object.entries(groupBy(localFilters, 'groupId'))) {
+      const groupChildren: _FilterGroup[] = []
+      for (const [subgroupId, _] of Object.entries(groupBy(group, 'subGroupId'))) {
+        groupChildren.push(new _FilterGroup(Number(subgroupId), []))
+      }
+      rootChildren.push(new _FilterGroup(Number(groupId), groupChildren))
+    }
+    const root = new _FilterGroup(0, rootChildren)
+    return renderGroupedFilters1(root)
   }
 
   const renderGroupedFilters1 = (groups: _FilterGroup) => {
     const GroupComponent: JSX.Element[] = [];
-    for (const [groupId, groupedFilters] of groups.children) {
+    for (const group of groups.children) {
+      const groupId = group.id
+      const groupedFilters = group.children
       const filtersInGroup = groupedFilters.length;
-      const groupBySubgroups = groupBy(groupedFilters, 'subGroupId');
       const subGroups = [];
-      for (const [_, subGroupedFilters] of Object.entries(groupBySubgroups)) {
+      for (const subgroup of group.children) {
+        const subGroupedFilters = subgroup.children
         subGroups.push(subGroupedFilters);
       }
 
@@ -548,7 +577,7 @@ export function AddFilterModal({
                                       );
                                       const subGroupId = (localfilter?.subGroupId ?? 0) + 1;
                                       if (subGroup.length < 2) {
-                                        localFilters[idx] = updatedLocalFilter;
+                                        localFilters[idx] = updatedLocalFilter.toFilterGroup;
                                       }
                                       setLocalFilters([
                                         ...localFilters,
@@ -589,7 +618,7 @@ export function AddFilterModal({
                                       (f) =>
                                         f.id === localfilter.id && f.groupId === Number(groupId)
                                     );
-                                    localFilters[idx] = updatedLocalFilter;
+                                    localFilters[idx] = updatedLocalFilter.toFilterGroup;
                                     setLocalFilters([
                                       ...localFilters,
                                       {
