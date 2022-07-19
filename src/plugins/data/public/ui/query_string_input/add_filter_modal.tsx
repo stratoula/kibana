@@ -476,8 +476,12 @@ export function AddFilterModal({
 
   const renderGroupedFilters = () => {
     const groupedFiltersNew = groupBy(localFilters, 'groupId');
+    return renderGroupedFilters1(Object.entries(groupedFiltersNew))
+  }
+
+  const renderGroupedFilters1 = (groups: [string, FilterGroup[]][]) => {
     const GroupComponent: JSX.Element[] = [];
-    for (const [groupId, groupedFilters] of Object.entries(groupedFiltersNew)) {
+    for (const [groupId, groupedFilters] of groups) {
       const filtersInGroup = groupedFilters.length;
       const groupBySubgroups = groupBy(groupedFilters, 'subGroupId');
       const subGroups = [];
