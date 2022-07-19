@@ -546,7 +546,7 @@ export function AddFilterModal({
       <>
         <div className={className}>
           {subGroup.children.map((localfilter, index) => {
-            return renderSubGroup(groupId, subGroup, subGroupIdx, localfilter, index);
+            return renderFilterElement(groupId, subGroup, subGroupIdx, localfilter, index);
           })}
         </div>
         <>
@@ -576,7 +576,9 @@ export function AddFilterModal({
     )
   }
 
-  function renderSubGroup(groupId: number, subGroup: _FilterGroup, subGroupIdx: number, localfilter: _FilterGroup, index: number) {
+  function renderFilterElement(groupId: number, subGroup: _FilterGroup, subGroupIdx: number, localfilter: _FilterGroup, index: number) {
+    const isRemoveFilterButtonVisible = localFilters.length > 1
+    const isAddSubGroupButtonVisible = subGroup.children.length < 2
     return (<>
       <EuiFlexGroup alignItems="center">
         <EuiFlexItem grow={false}>
@@ -594,7 +596,7 @@ export function AddFilterModal({
         </EuiFlexItem>
         <EuiFlexItem grow={false}>
           <EuiFlexGroup responsive={false} justifyContent="center">
-            {subGroup.children.length < 2 && (
+            {isAddSubGroupButtonVisible && (
               <EuiFlexItem grow={false}>
                 <EuiButtonIcon
                   onClick={() => {
@@ -674,7 +676,7 @@ export function AddFilterModal({
                 aria-label="Add filter group with AND"
               />
             </EuiFlexItem>
-            {localFilters.length > 1 && (
+            {isRemoveFilterButtonVisible && (
               <EuiFlexItem grow={false}>
                 <EuiButtonIcon
                   display="base"
