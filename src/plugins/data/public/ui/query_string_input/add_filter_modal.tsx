@@ -126,26 +126,35 @@ export function AddFilterModal({
   const [submitDisabled, setSubmitDisabled] = useState(false);
 
   const [localFilters, setLocalFilters] = useState<FilterGroup[]>([
-    {
-      field: undefined,
-      operator: undefined,
-      value: undefined,
-      // find the max groupId and id and start from + 1
-      groupId: multipleFilters?.length
-        ? Math.max.apply(
-          Math,
-          multipleFilters.map((f) => f.groupId)
-        ) + 1
-        : 1,
-      id: multipleFilters?.length
-        ? Math.max.apply(
-          Math,
-          multipleFilters.map((f) => f.id)
-        ) + 1
-        : 0,
-      subGroupId: 1,
-      relationship: undefined,
-    },
+      {field: undefined, operator: undefined, value: undefined, groupId: 1, id: Number(101), relationship: "OR", subGroupId: Number(201)},
+      {field: undefined, operator: undefined, value: undefined, groupId: 2, id: Number(102), relationship: "OR", subGroupId: Number(202)},
+      {field: undefined, operator: undefined, value: undefined, groupId: 3, id: Number(103), relationship: "OR", subGroupId: Number(203)},
+      {field: undefined, operator: undefined, value: undefined, groupId: 3, id: Number(104), relationship: "OR", subGroupId: Number(203)},
+      {field: undefined, operator: undefined, value: undefined, groupId: 1, id: Number(111), relationship: "OR", subGroupId: Number(201)},
+      {field: undefined, operator: undefined, value: undefined, groupId: 1, id: Number(112), relationship: "OR", subGroupId: Number(201)},
+      {field: undefined, operator: undefined, value: undefined, groupId: 4, id: Number(411), relationship: "OR", subGroupId: Number(301)},
+      {field: undefined, operator: undefined, value: undefined, groupId: 4, id: Number(412), relationship: "OR", subGroupId: Number(301)}
+
+    // {
+    //   field: undefined,
+    //   operator: undefined,
+    //   value: undefined,
+    //   // find the max groupId and id and start from + 1
+    //   groupId: multipleFilters?.length
+    //     ? Math.max.apply(
+    //       Math,
+    //       multipleFilters.map((f) => f.groupId)
+    //     ) + 1
+    //     : 1,
+    //   id: multipleFilters?.length
+    //     ? Math.max.apply(
+    //       Math,
+    //       multipleFilters.map((f) => f.id)
+    //     ) + 1
+    //     : 0,
+    //   subGroupId: 1,
+    //   relationship: undefined,
+    // },
   ]);
 
   useEffect(() => {
@@ -491,7 +500,7 @@ export function AddFilterModal({
         this.localfilter = localfilter
         this.render = () => {
           const isRemoveFilterButtonVisible = localFilters.length > 1
-          const isAddSubGroupButtonVisible = true // subGroup.children.length < 2
+          const isAddSubGroupButtonVisible = true // FIXME subGroup.children.length < 2
           return (<>
             <EuiFlexGroup alignItems="center">
               <EuiFlexItem grow={false}>
@@ -641,18 +650,23 @@ export function AddFilterModal({
 
       this.render = () => {
         const children = this.children
-        let renderedChildren: JSX.Element[] = []
-        for (let i = 0; i < children.length; ++i) {
-            let child = children[i]
-            renderedChildren.push(child.render())
-            let isLastChild = i + 1 == children.length
-            if (!isLastChild) {
-              renderedChildren.push(renderGroupRelationship(this.relationship))
-            }
+        if (children.length > 1) {
+          let renderedChildren: JSX.Element[] = []
+          for (let i = 0; i < children.length; ++i) {
+            debugger
+              let child = children[i]
+              renderedChildren.push(child.render())
+              const isLastChild = i + 1 == children.length
+              if (!isLastChild) {
+                renderedChildren.push(renderGroupRelationship(this.relationship))
+              }
+          }
+          return (<EuiPanel color="subdued" className={className} paddingSize="s">{renderedChildren}</EuiPanel>)  
+        } else if (children.length == 1) {
+          return children[0].render()
+        } else {
+          return <></>
         }
-        return (<EuiPanel color="subdued" className={className} paddingSize="s">
-          {renderedChildren}
-        </EuiPanel>)
       }
     }
   }
@@ -677,35 +691,46 @@ export function AddFilterModal({
     )
   }
 
+  // const renderGroupedFilters = () => {
+  //   const rootGroupChildren: _FilterRenderable[] = []
+
+  //   const filtersByGroupId: [string, FilterGroup[]][] = Object.entries(groupBy(localFilters, 'groupId'))
+  //   for (const [groupId, fitlersInGroup] of filtersByGroupId) {
+  //     const groupChildren: _FilterRenderable[] = []
+  //     const filtersBySubGroupId: [string, FilterGroup[]][] = Object.entries(groupBy(fitlersInGroup, 'subGroupId'))
+  //     for (const [subGroupId, fitlersInSubGroup] of filtersBySubGroupId) {
+  //       const subGroupChildren: _FilterRenderable[] = []
+  //       for (const localFilter of fitlersInSubGroup) {
+  //         subGroupChildren.push(new _Filter(Number(localFilter.groupId), localFilter))
+  //       }
+  //       const subGroup = new _FilterGroup(Number(subGroupId), subGroupChildren, 'AND2', classNames('kbnQueryBar__filterModalSubGroups')) // classNames('kbnQueryBar__filterModalSubGroups')
+  //       groupChildren.push(subGroup)
+  //     }
+  //     rootGroupChildren.push(new _FilterGroup(Number(groupId), groupChildren, 'OR5', classNames('kbnQueryBar__filterModalGroups'))) // classNames('kbnQueryBar__filterModalGroups')
+  //   }
+
+  //   const root = new _FilterGroup(0, rootGroupChildren, 'AND1', classNames(''))
+  //   return root.render()
+  // }
+  
   const renderGroupedFilters = () => {
-    const rootGroupChildren: _FilterRenderable[] = []
+    const root = new _FilterGroup(1, [
+      new _Filter(localFilters[0].groupId, localFilters[0]),
+      new _Filter(localFilters[4].groupId, localFilters[4]),
+      new _Filter(localFilters[5].groupId, localFilters[5]),
+      new _FilterGroup(2, [
+        new _Filter(localFilters[1].groupId, localFilters[1]),
+        new _FilterGroup(3, [
+          new _Filter(localFilters[2].groupId, localFilters[2]),
+          new _FilterGroup(3, [
+            new _Filter(localFilters[6].groupId, localFilters[6]),
+            new _Filter(localFilters[7].groupId, localFilters[7]),
+          ], 'AND4', classNames('kbnQueryBar__filterModalGroups')),
+          new _Filter(localFilters[3].groupId, localFilters[1])
+        ], 'AND3', classNames('kbnQueryBar__filterModalSubGroups'))
+      ], 'AND2', classNames('kbnQueryBar__filterModalGroups'))
+    ], 'OR1', classNames(''))
 
-    // const isModalGroupsClass = children.length > 1
-    // const isModalSubGroupsClass = subGroup.children.length > 1 && groupsCount > 1
-    // const isModalGroups1 = !isModalSubGroupsClass && (groupsCount === 1 && subGroup.children.length > 1)
-    // const classes =
-    //   isModalSubGroupsClass
-    //     ? 'kbnQueryBar__filterModalSubGroups'
-    //     : isModalGroups1
-    //       ? 'kbnQueryBar__filterModalGroups'
-    //       : '';
-
-    const filtersByGroupId: [string, FilterGroup[]][] = Object.entries(groupBy(localFilters, 'groupId'))
-    for (const [groupId, fitlersInGroup] of filtersByGroupId) {
-      const groupChildren: _FilterRenderable[] = []
-      const filtersBySubGroupId: [string, FilterGroup[]][] = Object.entries(groupBy(fitlersInGroup, 'subGroupId'))
-      for (const [subGroupId, fitlersInSubGroup] of filtersBySubGroupId) {
-        const subGroupChildren: _FilterRenderable[] = []
-        for (const localFilter of fitlersInSubGroup) {
-          subGroupChildren.push(new _Filter(Number(localFilter.groupId), localFilter))
-        }
-        const subGroup = new _FilterGroup(Number(subGroupId), subGroupChildren, 'OR', classNames('kbnQueryBar__filterModalSubGroups'))
-        groupChildren.push(subGroup)
-      }
-      rootGroupChildren.push(new _FilterGroup(Number(groupId), groupChildren, 'OR', classNames('kbnQueryBar__filterModalGroups')))
-    }
-
-    const root = new _FilterGroup(0, rootGroupChildren, 'AND', classNames(''))
     return root.render()
   }
 
