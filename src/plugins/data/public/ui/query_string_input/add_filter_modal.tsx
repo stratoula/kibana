@@ -476,22 +476,18 @@ export function AddFilterModal({
   };
 
   interface _FilterRenderable {
-    isLast: boolean
     render: () => JSX.Element
   }
 
   class _Filter implements _FilterRenderable {
     groupId: number
     localfilter: FilterGroup
-    isLast: boolean
     render: () => JSX.Element
 
     constructor(groupId: number,
-      localfilter: FilterGroup,
-      isLast: boolean) {
+      localfilter: FilterGroup) {
         this.groupId = groupId
         this.localfilter = localfilter
-        this.isLast = isLast
         this.render = () => {
           const isRemoveFilterButtonVisible = localFilters.length > 1
           const isAddSubGroupButtonVisible = true // subGroup.children.length < 2
@@ -633,14 +629,12 @@ export function AddFilterModal({
     id: number
     children: _FilterRenderable[]
     relationship: string
-    isLast: boolean
     render: () => JSX.Element
 
-    constructor(id: number, children: _FilterRenderable[], relationship: string, isLast: boolean) {
+    constructor(id: number, children: _FilterRenderable[], relationship: string) {
       this.id = id
       this.children = children
       this.relationship = relationship
-      this.isLast = isLast
 
       this.render = () => {
         const children = this.children
@@ -663,17 +657,9 @@ export function AddFilterModal({
               renderedChildren.push(renderGroupRelationship(this.relationship))
             }
         }
-        return (
-          <>
-            <EuiPanel
-            color="subdued"
-            className={className}
-            paddingSize="s"
-            >
-              {renderedChildren}
-            </EuiPanel>
-          </>
-        )
+        return (<EuiPanel color="subdued" className={className} paddingSize="s">
+          {renderedChildren}
+        </EuiPanel>)
       }
     }
   }
@@ -726,13 +712,10 @@ export function AddFilterModal({
     const rootChildren: _FilterGroup[] = []
     const groupInfos = Object.entries(groupBy(localFilters, 'groupId'))
     // groups
-    let groupCounter = 0;
     for (const localFilter of localFilters) {
-      const isLastGroup = groupCounter + 1 == localFilters.length
-      rootChildren.push(new _Filter(Number(localFilter.groupId), localFilter, isLastGroup))
-      groupCounter += 1
+      rootChildren.push(new _Filter(Number(localFilter.groupId), localFilter))
     }
-    const root = new _FilterGroup(0, rootChildren, 'AND', true)
+    const root = new _FilterGroup(0, rootChildren, 'AND')
     return root.render()
   }
 
