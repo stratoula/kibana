@@ -509,11 +509,6 @@ export function AddFilterModal({
           const groupId = group.id
           const groupedFilters = group.children
           const filtersInGroup = groupedFilters.length;
-          const subGroups = [];
-          for (const subgroup of group.children) {
-            const subGroupedFilters = subgroup.children
-            subGroups.push(subGroupedFilters);
-          }
 
           const temp = (
             <EuiPanel
@@ -523,17 +518,17 @@ export function AddFilterModal({
               )}
               paddingSize="s"
             >
-              {subGroups.map((subGroup, subGroupIdx) => {
+              {group.children.map((subGroup, subGroupIdx) => {
                 const classes =
-                  subGroup.length > 1 && groupsCount > 1
+                  subGroup.children.length > 1 && groupsCount > 1
                     ? 'kbnQueryBar__filterModalSubGroups'
-                    : groupsCount === 1 && subGroup.length > 1
+                    : groupsCount === 1 && subGroup.children.length > 1
                       ? 'kbnQueryBar__filterModalGroups'
                       : '';
                 return (
                   <>
                     <div className={classNames(classes)}>
-                      {subGroup.map((localfilter, index) => {
+                      {subGroup.children.map((localfilter, index) => {
                         return (
                           <>
                             <EuiFlexGroup alignItems="center">
@@ -552,7 +547,7 @@ export function AddFilterModal({
                               </EuiFlexItem>
                               <EuiFlexItem grow={false}>
                                 <EuiFlexGroup responsive={false} justifyContent="center">
-                                  {subGroup.length < 2 && (
+                                  {subGroup.children.length < 2 && (
                                     <EuiFlexItem grow={false}>
                                       <EuiButtonIcon
                                         onClick={() => {
@@ -565,7 +560,7 @@ export function AddFilterModal({
                                               f.id === localfilter.id && f.groupId === Number(groupId)
                                           );
                                           const subGroupId = (localfilter?.subGroupId ?? 0) + 1;
-                                          if (subGroup.length < 2) {
+                                          if (subGroup.children.length < 2) {
                                             localFilters[idx] = updatedLocalFilter.toFilterGroup;
                                           }
                                           setLocalFilters([
@@ -667,7 +662,7 @@ export function AddFilterModal({
 
                             {localfilter.relationship &&
                               localfilter.relationship === 'OR' &&
-                              subGroup.length === 0 && (
+                              subGroup.children.length === 0 && (
                                 <>
                                   <EuiFlexGroup gutterSize="none" responsive={false}>
                                     <EuiFlexItem>
@@ -692,7 +687,7 @@ export function AddFilterModal({
                       })}
                     </div>
                     <>
-                      {subGroup.length > 0 && subGroupIdx !== subGroups.length - 1 && (
+                      {subGroup.children.length > 0 && subGroupIdx !== group.children.length - 1 && (
                         <>
                           <EuiFlexGroup gutterSize="none" responsive={false}>
                             <EuiFlexItem>
