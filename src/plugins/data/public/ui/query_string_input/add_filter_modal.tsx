@@ -476,20 +476,44 @@ export function AddFilterModal({
   };
 
   interface _FilterRenderable {
-    render: () => JSX.Element[]
+    render: () => JSX.Element
+  }
+
+  class _Filter implements _FilterRenderable {
+    groupId: number
+    subGroup: _FilterGroup
+    subGroupIdx: number
+    localfilter: _FilterGroup
+    index: number
+    render: () => JSX.Element
+
+    constructor(groupId: number,
+      subGroup: _FilterGroup,
+      subGroupIdx: number,
+      localfilter: _FilterGroup,
+      index: number) {
+        this.groupId = groupId
+        this.subGroup = subGroup
+        this.subGroupIdx = subGroupIdx
+        this.localfilter = localfilter
+        this.index = index
+        this.render = () => {
+          return renderFilterElement(this.groupId, this.subGroup, this.subGroupIdx, this.localfilter, this.index)
+        }
+      }
   }
 
   class _FilterGroup implements _FilterRenderable {
     id: number
-    children: _FilterGroup[]
+    children: _FilterRenderable[]
     // TODO delete fields below
     groupId: number
     subGroupId: number
     relationship: string
     toFilterGroup: FilterGroup
-    render: () => JSX.Element[]
+    render: () => JSX.Element
 
-    constructor(id: number, children: _FilterGroup[]) {
+    constructor(id: number, children: _FilterRenderable[]) {
       this.id = id
       this.children = children
       this.groupId = id
@@ -505,55 +529,36 @@ export function AddFilterModal({
         subGroupId: id
       }
       this.render = () => {
-        const GroupComponent: JSX.Element[] = [];
-        for (const group of this.children) {
-          const groupId = group.id
-          const groupedFilters = group.children
-          const filtersInGroup = groupedFilters.length;
-
-          const isModalGroupsClass = filtersInGroup > 1 && groupsCount > 1
-          const className = classNames(!isModalGroupsClass ? 'kbnQueryBar__filterModalGroups' : '')
-
-          const renderedGroup = (
+        const children = this.children
+        const isModalGroupsClass = children.length > 1 && groupsCount > 1
+        const className = classNames(!isModalGroupsClass ? 'kbnQueryBar__filterModalGroups' : '')
+        const isRelationshipVisible = children.length > 0 // && subGroupIdx !== group.children.length - 1
+        return (
+          <>
             <EuiPanel
-              color="subdued"
-              className={className}
-              paddingSize="s"
+            color="subdued"
+            className={className}
+            paddingSize="s"
             >
-              {group.children.map((subGroup, subGroupIdx) => {
-                const isModalSubGroupsClass = subGroup.children.length > 1 && groupsCount > 1
-                const isModalGroups1 = !isModalSubGroupsClass && (groupsCount === 1 && subGroup.children.length > 1)
-                const classes =
-                  isModalSubGroupsClass
-                    ? 'kbnQueryBar__filterModalSubGroups'
-                    : isModalGroups1
-                      ? 'kbnQueryBar__filterModalGroups'
-                      : '';
-                return renderGroup(classNames(classes), group, groupId, subGroup, subGroupIdx);
+              {children.map((child, _) => {
+                // const isModalSubGroupsClass = subGroup.children.length > 1 && groupsCount > 1
+                // const isModalGroups1 = !isModalSubGroupsClass && (groupsCount === 1 && subGroup.children.length > 1)
+                // const classes =
+                //   isModalSubGroupsClass
+                //     ? 'kbnQueryBar__filterModalSubGroups'
+                //     : isModalGroups1
+                //       ? 'kbnQueryBar__filterModalGroups'
+                //       : '';
+                return child.render() // renderGroup(classNames(classes), group, groupId, subGroup, subGroupIdx);
               })}
+              <>
+                {isRelationshipVisible ? renderGroupRelationship(this.relationship) : <></>}
+              </>
             </EuiPanel>
-          );
-          GroupComponent.push(renderedGroup);
-        }
-        return GroupComponent;
+          </>
+        )
       }
     }
-  }
-
-  function renderGroup(className: string, group: _FilterGroup, groupId: number, subGroup: _FilterGroup, subGroupIdx: number) {
-    const isRelationshipVisible = subGroup.children.length > 0 && subGroupIdx !== group.children.length - 1
-    return (
-      <>
-        <div className={className}>
-          {subGroup.children.map((localfilter, index) => {
-            return renderFilterElement(groupId, subGroup, subGroupIdx, localfilter, index);
-          })}
-        </div>
-        <>
-          {isRelationshipVisible ? renderGroupRelationship(group.relationship) : <></>}
-        </>
-      </>
-    )
   }
 
   function renderGroupRelationship(relationship: string) {
@@ -737,236 +742,16 @@ export function AddFilterModal({
   const renderGroupedFilters = () => {
     const rootChildren: _FilterGroup[] = []
     for (const [groupId, group] of Object.entries(groupBy(localFilters, 'groupId'))) {
-      const groupChildren: _FilterGroup[] = []
-      for (const [subgroupId, _] of Object.entries(groupBy(group, 'subGroupId'))) {
-        groupChildren.push(new _FilterGroup(Number(subgroupId), []))
+      const subGroupChildren: _FilterRenderable[] = []
+      for (const [subgroupId, subgroup] of Object.entries(groupBy(group, 'subGroupId'))) {
+        const fakeSubGroup = new _FilterGroup(Number(subgroupId), [])
+        subGroupChildren.push(new _Filter(Number(groupId), fakeSubGroup, 0, fakeSubGroup, 0))
       }
-      rootChildren.push(new _FilterGroup(Number(groupId), groupChildren))
+      rootChildren.push(new _FilterGroup(Number(groupId), subGroupChildren))
     }
     const root = new _FilterGroup(0, rootChildren)
-    return renderGroupedFilters1(root)
+    return root.render()
   }
-
-  const renderGroupedFilters1 = (rootGroup: _FilterGroup) => {
-    return rootGroup.render()
-  }
-
-  const renderGroupedFilters2 = (rootGroup: _FilterGroup) => {
-    const GroupComponent: JSX.Element[] = [];
-    for (const group of rootGroup.children) {
-      const groupId = group.id
-      const groupedFilters = group.children
-      const filtersInGroup = groupedFilters.length;
-      const subGroups = [];
-      for (const subgroup of group.children) {
-        const subGroupedFilters = subgroup.children
-        subGroups.push(subGroupedFilters);
-      }
-
-      const temp = (
-        <EuiPanel
-          color="subdued"
-          className={classNames(
-            filtersInGroup > 1 && groupsCount > 1 ? 'kbnQueryBar__filterModalGroups' : ''
-          )}
-          paddingSize="s"
-        >
-          {subGroups.map((subGroup, subGroupIdx) => {
-            const classes =
-              subGroup.length > 1 && groupsCount > 1
-                ? 'kbnQueryBar__filterModalSubGroups'
-                : groupsCount === 1 && subGroup.length > 1
-                  ? 'kbnQueryBar__filterModalGroups'
-                  : '';
-            return (
-              <>
-                <div className={classNames(classes)}>
-                  {subGroup.map((localfilter, index) => {
-                    return (
-                      <>
-                        <EuiFlexGroup alignItems="center">
-                          <EuiFlexItem grow={false}>
-                            <EuiIcon type="grab" size="s" />
-                          </EuiFlexItem>
-
-                          <EuiFlexItem grow={3}>
-                            <EuiFlexGroup alignItems="center" className="kbnQueryBar__inputGroup">
-                              <EuiFlexItem>{renderFieldInput(localfilter.id)}</EuiFlexItem>
-                              <EuiFlexItem>{renderOperatorInput(localfilter.id)}</EuiFlexItem>
-                              <EuiFlexItem data-test-subj="filterParams">
-                                {renderParamsEditor(localfilter.id)}
-                              </EuiFlexItem>
-                            </EuiFlexGroup>
-                          </EuiFlexItem>
-                          <EuiFlexItem grow={false}>
-                            <EuiFlexGroup responsive={false} justifyContent="center">
-                              {subGroup.length < 2 && (
-                                <EuiFlexItem grow={false}>
-                                  <EuiButtonIcon
-                                    onClick={() => {
-                                      const updatedLocalFilter = {
-                                        ...localfilter,
-                                        relationship: 'OR',
-                                      };
-                                      const idx = localFilters.findIndex(
-                                        (f) =>
-                                          f.id === localfilter.id && f.groupId === Number(groupId)
-                                      );
-                                      const subGroupId = (localfilter?.subGroupId ?? 0) + 1;
-                                      if (subGroup.length < 2) {
-                                        localFilters[idx] = updatedLocalFilter.toFilterGroup;
-                                      }
-                                      setLocalFilters([
-                                        ...localFilters,
-                                        {
-                                          field: undefined,
-                                          operator: undefined,
-                                          value: undefined,
-                                          relationship: undefined,
-                                          groupId: localfilter.groupId,
-                                          id: Number(multipleFilters?.length) + localFilters.length,
-                                          subGroupId,
-                                        },
-                                      ]);
-                                    }}
-                                    iconType="returnKey"
-                                    size="s"
-                                    aria-label="Add filter group with OR"
-                                  />
-                                </EuiFlexItem>
-                              )}
-                              <EuiFlexItem grow={false}>
-                                <EuiButtonIcon
-                                  display="base"
-                                  onClick={() => {
-                                    const filtersOnGroup = localFilters.filter(
-                                      (f) => f.groupId === Number(groupId)
-                                    );
-                                    const subGroupId =
-                                      filtersOnGroup.length > 2
-                                        ? localfilter?.subGroupId ?? 0
-                                        : (localfilter?.subGroupId ?? 0) + 1;
-                                    const updatedLocalFilter = {
-                                      ...localfilter,
-                                      relationship: 'AND',
-                                      subGroupId: filtersOnGroup.length > 1 ? subGroupId : 1,
-                                    };
-                                    const idx = localFilters.findIndex(
-                                      (f) =>
-                                        f.id === localfilter.id && f.groupId === Number(groupId)
-                                    );
-                                    localFilters[idx] = updatedLocalFilter.toFilterGroup;
-                                    setLocalFilters([
-                                      ...localFilters,
-                                      {
-                                        field: undefined,
-                                        operator: undefined,
-                                        value: undefined,
-                                        relationship: undefined,
-                                        groupId:
-                                          filtersOnGroup.length > 1
-                                            ? localFilters[localFilters.length - 1].groupId
-                                            : localFilters[localFilters.length - 1].groupId + 1,
-                                        subGroupId,
-                                        id: Number(multipleFilters?.length) + localFilters.length,
-                                      },
-                                    ]);
-                                    if (filtersOnGroup.length <= 1) {
-                                      setGroupsCount(groupsCount + 1);
-                                    }
-                                  }}
-                                  iconType="plus"
-                                  size="s"
-                                  aria-label="Add filter group with AND"
-                                />
-                              </EuiFlexItem>
-                              {localFilters.length > 1 && (
-                                <EuiFlexItem grow={false}>
-                                  <EuiButtonIcon
-                                    display="base"
-                                    onClick={() => {
-                                      const currentIdx = localFilters.findIndex(
-                                        (f) => f.id === localfilter.id
-                                      );
-                                      if (currentIdx > 0) {
-                                        localFilters[currentIdx - 1].relationship = 'AND';
-                                      }
-                                      const updatedFilters = localFilters.filter(
-                                        (_, idx) => idx !== currentIdx
-                                      );
-                                      const filtersOnGroup = updatedFilters.filter(
-                                        (f) => f.groupId === Number(groupId)
-                                      );
-                                      if (filtersOnGroup.length < 1) {
-                                        setGroupsCount(groupsCount - 1);
-                                      }
-                                      setLocalFilters(updatedFilters);
-                                    }}
-                                    iconType="trash"
-                                    size="s"
-                                    color="danger"
-                                    aria-label="Delete filter group"
-                                  />
-                                </EuiFlexItem>
-                              )}
-                            </EuiFlexGroup>
-                          </EuiFlexItem>
-                        </EuiFlexGroup>
-
-                        {localfilter.relationship &&
-                          localfilter.relationship === 'OR' &&
-                          subGroup.length === 0 && (
-                            <>
-                              <EuiFlexGroup gutterSize="none" responsive={false}>
-                                <EuiFlexItem>
-                                  <EuiHorizontalRule margin="s" />
-                                </EuiFlexItem>
-                                <EuiFlexItem grow={false}>
-                                  <EuiText
-                                    color="subdued"
-                                    className="kbnQueryBar__filterModalORText"
-                                  >
-                                    OR
-                                  </EuiText>
-                                </EuiFlexItem>
-                                <EuiFlexItem>
-                                  <EuiHorizontalRule margin="s" />
-                                </EuiFlexItem>
-                              </EuiFlexGroup>
-                            </>
-                          )}
-                      </>
-                    );
-                  })}
-                </div>
-                <>
-                  {subGroup.length > 0 && subGroupIdx !== subGroups.length - 1 && (
-                    <>
-                      <EuiFlexGroup gutterSize="none" responsive={false}>
-                        <EuiFlexItem>
-                          <EuiHorizontalRule margin="s" />
-                        </EuiFlexItem>
-                        <EuiFlexItem grow={false}>
-                          <EuiText color="subdued" className="kbnQueryBar__filterModalORText">
-                            OR
-                          </EuiText>
-                        </EuiFlexItem>
-                        <EuiFlexItem>
-                          <EuiHorizontalRule margin="s" />
-                        </EuiFlexItem>
-                      </EuiFlexGroup>
-                    </>
-                  )}
-                </>
-              </>
-            );
-          })}
-        </EuiPanel>
-      );
-      GroupComponent.push(temp);
-    }
-    return GroupComponent;
-  };
 
   return (
     <EuiModal
