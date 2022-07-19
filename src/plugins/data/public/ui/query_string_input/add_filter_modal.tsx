@@ -47,6 +47,7 @@ import { RangeValueInput } from '../filter_bar/filter_editor/range_value_input';
 import { SavedQueryMeta } from '../saved_query_form';
 
 import { IIndexPattern, IFieldType } from '../..';
+import { Classnames } from '../../../../../../packages/kbn-ui-shared-deps-src/src/entry';
 
 export interface ITab {
   type: string;
@@ -510,22 +511,25 @@ export function AddFilterModal({
           const groupedFilters = group.children
           const filtersInGroup = groupedFilters.length;
 
+          const isModalGroupsClass = filtersInGroup > 1 && groupsCount > 1
+          const className = classNames(!isModalGroupsClass ? 'kbnQueryBar__filterModalGroups' : '')
+
           const renderedGroup = (
             <EuiPanel
               color="subdued"
-              className={classNames(
-                filtersInGroup > 1 && groupsCount > 1 ? 'kbnQueryBar__filterModalGroups' : ''
-              )}
+              className={className}
               paddingSize="s"
             >
               {group.children.map((subGroup, subGroupIdx) => {
+                const isModalSubGroupsClass = subGroup.children.length > 1 && groupsCount > 1
+                const isModalGroups1 = !isModalSubGroupsClass && (groupsCount === 1 && subGroup.children.length > 1)
                 const classes =
-                  subGroup.children.length > 1 && groupsCount > 1
+                  isModalSubGroupsClass
                     ? 'kbnQueryBar__filterModalSubGroups'
-                    : groupsCount === 1 && subGroup.children.length > 1
+                    : isModalGroups1
                       ? 'kbnQueryBar__filterModalGroups'
                       : '';
-                return renderGroup(classes, group, groupId, subGroup, subGroupIdx);
+                return renderGroup(classNames(classes), group, groupId, subGroup, subGroupIdx);
               })}
             </EuiPanel>
           );
@@ -536,33 +540,38 @@ export function AddFilterModal({
     }
   }
 
-  function renderGroup(classes: string, group: _FilterGroup, groupId: number, subGroup: _FilterGroup, subGroupIdx: number) {
+  function renderGroup(className: string, group: _FilterGroup, groupId: number, subGroup: _FilterGroup, subGroupIdx: number) {
+    const isRelationshipVisible = subGroup.children.length > 0 && subGroupIdx !== group.children.length - 1
     return (
       <>
-        <div className={classNames(classes)}>
+        <div className={className}>
           {subGroup.children.map((localfilter, index) => {
             return renderSubGroup(groupId, subGroup, subGroupIdx, localfilter, index);
           })}
         </div>
         <>
-          {subGroup.children.length > 0 && subGroupIdx !== group.children.length - 1 && (
-            <>
-              <EuiFlexGroup gutterSize="none" responsive={false}>
-                <EuiFlexItem>
-                  <EuiHorizontalRule margin="s" />
-                </EuiFlexItem>
-                <EuiFlexItem grow={false}>
-                  <EuiText color="subdued" className="kbnQueryBar__filterModalORText">
-                    OR
-                  </EuiText>
-                </EuiFlexItem>
-                <EuiFlexItem>
-                  <EuiHorizontalRule margin="s" />
-                </EuiFlexItem>
-              </EuiFlexGroup>
-            </>
-          )}
+          {isRelationshipVisible ? renderGroupRelationship(group.relationship) : <></>}
         </>
+      </>
+    )
+  }
+
+  function renderGroupRelationship(relationship: string) {
+    return (
+      <>
+        <EuiFlexGroup gutterSize="none" responsive={false}>
+          <EuiFlexItem>
+            <EuiHorizontalRule margin="s" />
+          </EuiFlexItem>
+          <EuiFlexItem grow={false}>
+            <EuiText color="subdued" className="kbnQueryBar__filterModalORText">
+              {relationship}
+            </EuiText>
+          </EuiFlexItem>
+          <EuiFlexItem>
+            <EuiHorizontalRule margin="s" />
+          </EuiFlexItem>
+        </EuiFlexGroup>
       </>
     )
   }
