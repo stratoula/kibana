@@ -474,7 +474,11 @@ export function AddFilterModal({
     }
   };
 
-  class _FilterGroup {
+  interface _FilterRenderable {
+    render: () => JSX.Element[]
+  }
+
+  class _FilterGroup implements _FilterRenderable {
     id: number
     children: _FilterGroup[]
     // TODO delete fields below
@@ -482,6 +486,7 @@ export function AddFilterModal({
     subGroupId: number
     relationship: string
     toFilterGroup: FilterGroup
+    render: () => JSX.Element[]
 
     constructor(id: number, children: _FilterGroup[]) {
       this.id = id
@@ -497,6 +502,9 @@ export function AddFilterModal({
         id: id,
         relationship: this.relationship,
         subGroupId: id
+      }
+      this.render = () => {
+        return []
       }
     }
   }
