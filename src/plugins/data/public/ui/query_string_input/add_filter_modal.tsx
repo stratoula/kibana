@@ -48,6 +48,7 @@ import { SavedQueryMeta } from '../saved_query_form';
 
 import { IIndexPattern, IFieldType } from '../..';
 import { Classnames } from '../../../../../../packages/kbn-ui-shared-deps-src/src/entry';
+import { string } from '../../../../../../x-pack/plugins/canvas/canvas_plugin_src/uis/arguments/string';
 
 export interface ITab {
   type: string;
@@ -629,25 +630,17 @@ export function AddFilterModal({
     id: number
     children: _FilterRenderable[]
     relationship: string
+    className: string
     render: () => JSX.Element
 
-    constructor(id: number, children: _FilterRenderable[], relationship: string) {
+    constructor(id: number, children: _FilterRenderable[], relationship: string, className: string) {
       this.id = id
       this.children = children
       this.relationship = relationship
+      this.className = className
 
       this.render = () => {
         const children = this.children
-        const isModalGroupsClass = children.length > 1
-        // const isModalSubGroupsClass = subGroup.children.length > 1 && groupsCount > 1
-        // const isModalGroups1 = !isModalSubGroupsClass && (groupsCount === 1 && subGroup.children.length > 1)
-        // const classes =
-        //   isModalSubGroupsClass
-        //     ? 'kbnQueryBar__filterModalSubGroups'
-        //     : isModalGroups1
-        //       ? 'kbnQueryBar__filterModalGroups'
-        //       : '';
-        const className = classNames(!isModalGroupsClass ? 'kbnQueryBar__filterModalGroups' : '')
         let renderedChildren: JSX.Element[] = []
         for (let i = 0; i < children.length; ++i) {
             let child = children[i]
@@ -685,37 +678,34 @@ export function AddFilterModal({
   }
 
   const renderGroupedFilters = () => {
-    // const rootChildren: _FilterGroup[] = []
-    // const groupInfos = Object.entries(groupBy(localFilters, 'groupId'))
-    // // groups
-    // let groupCounter = 0;
-    // for (const [groupId, filtersWithGivenGroupId] of groupInfos) {
-    //   // subGroups
-    //   const subGroupChildren: _FilterRenderable[] = []
-    //   const subGroupInfos = Object.entries(groupBy(filtersWithGivenGroupId, 'subGroupId'))
-    //   let subGroupCounter = 0;
-    //   for (const [subgroupId, filtersWithGivenSubGroupID] of subGroupInfos) {
-    //     // filters
-    //     for (let i = 0; i < filtersWithGivenSubGroupID.length ; i++) {
-    //       const filterInfo = filtersWithGivenSubGroupID[i];
-    //       const isLast = i + 1 == filtersWithGivenSubGroupID.length
-    //       subGroupChildren.push(new _Filter(Number(groupId), filterInfo, isLast))
-    //     }
-    //     const isLastSubGroup = subGroupCounter + 1 == filtersWithGivenSubGroupID.length
-    //     subGroupChildren.push(new  _FilterGroup(Number(subgroupId), subGroupChildren, 'OR', isLastSubGroup))
-    //     subGroupCounter += 1
-    //   }
-    //   const isLastGroup = groupCounter + 1 == groupInfos.length
-    //   rootChildren.push(new _FilterGroup(Number(groupId), subGroupChildren, 'AND', isLastGroup))
-    //   groupCounter += 1
-    // }
-    const rootChildren: _FilterGroup[] = []
-    const groupInfos = Object.entries(groupBy(localFilters, 'groupId'))
-    // groups
-    for (const localFilter of localFilters) {
-      rootChildren.push(new _Filter(Number(localFilter.groupId), localFilter))
+    const rootGroupChildren: _FilterRenderable[] = []
+
+    // const isModalGroupsClass = children.length > 1
+    // const isModalSubGroupsClass = subGroup.children.length > 1 && groupsCount > 1
+    // const isModalGroups1 = !isModalSubGroupsClass && (groupsCount === 1 && subGroup.children.length > 1)
+    // const classes =
+    //   isModalSubGroupsClass
+    //     ? 'kbnQueryBar__filterModalSubGroups'
+    //     : isModalGroups1
+    //       ? 'kbnQueryBar__filterModalGroups'
+    //       : '';
+
+    const filtersByGroupId: [string, FilterGroup[]][] = Object.entries(groupBy(localFilters, 'groupId'))
+    for (const [groupId, fitlersInGroup] of filtersByGroupId) {
+      const groupChildren: _FilterRenderable[] = []
+      const filtersBySubGroupId: [string, FilterGroup[]][] = Object.entries(groupBy(fitlersInGroup, 'subGroupId'))
+      for (const [subGroupId, fitlersInSubGroup] of filtersBySubGroupId) {
+        const subGroupChildren: _FilterRenderable[] = []
+        for (const localFilter of fitlersInSubGroup) {
+          subGroupChildren.push(new _Filter(Number(localFilter.groupId), localFilter))
+        }
+        const subGroup = new _FilterGroup(Number(subGroupId), subGroupChildren, 'OR', classNames('kbnQueryBar__filterModalSubGroups'))
+        groupChildren.push(subGroup)
+      }
+      rootGroupChildren.push(new _FilterGroup(Number(groupId), groupChildren, 'OR', classNames('kbnQueryBar__filterModalGroups')))
     }
-    const root = new _FilterGroup(0, rootChildren, 'AND')
+
+    const root = new _FilterGroup(0, rootGroupChildren, 'AND', classNames(''))
     return root.render()
   }
 
