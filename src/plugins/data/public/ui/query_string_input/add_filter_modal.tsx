@@ -474,14 +474,22 @@ export function AddFilterModal({
     }
   };
 
-  const renderGroupedFilters = () => {
-    const groupedFiltersNew = groupBy(localFilters, 'groupId');
-    return renderGroupedFilters1(Object.entries(groupedFiltersNew))
+  class _FilterGroup {
+    children: [string, FilterGroup[]][]
+
+    constructor(children: [string, FilterGroup[]][]) {
+      this.children = children
+    }
   }
 
-  const renderGroupedFilters1 = (groups: [string, FilterGroup[]][]) => {
+  const renderGroupedFilters = () => {
+    const groupedFiltersNew = groupBy(localFilters, 'groupId');
+    return renderGroupedFilters1(new _FilterGroup(Object.entries(groupedFiltersNew)))
+  }
+
+  const renderGroupedFilters1 = (groups: _FilterGroup) => {
     const GroupComponent: JSX.Element[] = [];
-    for (const [groupId, groupedFilters] of groups) {
+    for (const [groupId, groupedFilters] of groups.children) {
       const filtersInGroup = groupedFilters.length;
       const groupBySubgroups = groupBy(groupedFilters, 'subGroupId');
       const subGroups = [];
