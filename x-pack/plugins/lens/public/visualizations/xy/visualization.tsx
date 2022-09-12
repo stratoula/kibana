@@ -106,7 +106,7 @@ export const getXyVisualization = ({
   },
 
   getLayerIds(state) {
-    return getLayersByType(state).map((l) => l.layerId);
+    return state ? getLayersByType(state).map((l) => l.layerId) : [];
   },
 
   getRemoveOperation(state, layerId) {

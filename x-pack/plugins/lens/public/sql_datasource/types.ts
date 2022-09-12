@@ -5,7 +5,9 @@
  * 2.0.
  */
 import type { DatatableColumn } from '@kbn/expressions-plugin/public';
-import type { AggregateQuery } from '@kbn/es-query';
+import type { VisualizeFieldContext } from '@kbn/ui-actions-plugin/public';
+import type { AggregateQuery, Query } from '@kbn/es-query';
+import type { VisualizeEditorContext } from '../types';
 
 export interface EsSQLLayerColumn {
   columnId: string;
@@ -21,7 +23,7 @@ export interface TextBasedLanguageField {
 
 export interface EsSQLLayer {
   index: string;
-  query: AggregateQuery | undefined;
+  query: Query | AggregateQuery | undefined;
   columns: EsSQLLayerColumn[];
   allColumns: EsSQLLayerColumn[];
   timeField?: string;
@@ -40,6 +42,7 @@ export type EsSQLPrivateState = EsSQLPersistedState & {
     layer: EsSQLLayer;
     fieldList: DatatableColumn[];
   }>;
+  initialContext?: VisualizeFieldContext | VisualizeEditorContext;
 };
 
 export interface IndexPatternRef {

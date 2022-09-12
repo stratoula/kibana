@@ -11,7 +11,7 @@ import { I18nProvider } from '@kbn/i18n-react';
 import { CoreStart } from '@kbn/core/public';
 import { i18n } from '@kbn/i18n';
 import { IStorageWrapper } from '@kbn/kibana-utils-plugin/public';
-import { isOfAggregateQueryType, AggregateQuery } from '@kbn/es-query';
+import { isOfAggregateQueryType, AggregateQuery, Query } from '@kbn/es-query';
 import { EuiButtonEmpty, EuiFormRow } from '@elastic/eui';
 import type { DatatableColumn, ExpressionsStart } from '@kbn/expressions-plugin/public';
 import type { DataViewsPublicPluginStart } from '@kbn/data-views-plugin/public';
@@ -54,14 +54,8 @@ export function getSQLDatasource({
   dataViews: DataViewsPublicPluginStart;
 }) {
   const getSuggestionsForState = (state: EsSQLPrivateState) => {
+    console.dir(state);
     return Object.entries(state.layers)?.map(([id, layer]) => {
-      // const reducedState: EsSQLPrivateState = {
-      //   ...state,
-      //   fieldList: state.fieldList,
-      //   layers: {
-      //     [id]: state.layers[id],
-      //   },
-      // };
       return {
         state: {
           ...state,
@@ -85,6 +79,67 @@ export function getSQLDatasource({
         keptLayerIds: [id],
       };
     });
+  };
+
+  const getSuggestionsForField = (state: EsSQLPrivateState) => {
+    const context = state.initialContext;
+    const contextColumns = [];
+    if (context && 'fieldName' in context && context.fieldName) {
+      const column = state.fieldList.find((col) => col.name === context.fieldName);
+      if (column) {
+        contextColumns.push(column);
+      }
+    }
+    const layerId = generateId();
+    const columns =
+      contextColumns?.map((f) => {
+        return {
+          columnId: f.id,
+          operation: {
+            dataType: f?.meta?.type as DataType,
+            label: f.name,
+            isBucketed: Boolean(f?.meta?.type !== 'number'),
+          },
+        };
+      }) ?? [];
+
+    return [
+      {
+        state: {
+          ...state,
+          layers: {
+            ...state.layers,
+            [layerId]: {
+              index: context?.indexPatternId,
+              query: context?.query,
+              columns:
+                contextColumns?.map((f) => {
+                  return {
+                    columnId: f.id,
+                    fieldName: f.name,
+                    meta: f.meta,
+                  };
+                }) ?? [],
+              allColumns:
+                state.fieldList?.map((f) => {
+                  return {
+                    columnId: f.id,
+                    fieldName: f.name,
+                    meta: f.meta,
+                  };
+                }) ?? [],
+            },
+          },
+        },
+        table: {
+          changeType: 'initial' as TableChangeType,
+          isMultiRow: false,
+          layerId,
+          columns,
+        },
+        keptLayerIds: [layerId],
+      },
+    ];
   };
   const sqlDatasource: Datasource<EsSQLPrivateState, EsSQLPersistedState> = {
     id: 'sql',
@@ -117,7 +172,8 @@ export function getSQLDatasource({
       });
       return errors;
     },
-    async initialize(state?: EsSQLPersistedState) {
+    async initialize(state?: EsSQLPersistedState, references, initialContext) {
+      // take the query from the initialContext
       const initState = state || { layers: {} };
       const indexPatternRefs: IndexPatternRef[] = await loadIndexPatternRefs(dataViews);
       let fieldList: DatatableColumn[] = [];
@@ -129,27 +185,23 @@ export function getSQLDatasource({
           fieldList = columnsFromQuery;
         }
       }
-      // if (context && 'sql' in context) {
-      //   const table = await fetchSql(context, dataViews, data, expressions);
-      //   const index = getIndexPatternFromSQLQuery(context.sql);
-      //   // todo hack some logic in for dates
-      //   const columns = table?.columns ?? [];
-      //   cachedFieldList['123'] = {
-      //     fields: columns ?? [],
-      //     singleRow: table?.rows.length === 1,
-      //   };
-      //   initState.layers['123'] = {
-      //     hideFilterBar: true,
-      //     query: context.sql,
-      //     index,
-      //     columns: columns.map((c) => ({ columnId: c.id, fieldName: c.id })),
-      //   };
-      // }
+      if (
+        initialContext &&
+        'query' in initialContext &&
+        initialContext.query &&
+        isOfAggregateQueryType(initialContext.query) &&
+        'sql' in initialContext.query
+      ) {
+        const table = await fetchSql(initialContext.query, dataViews, data, expressions);
+        const columnsFromQuery = table?.columns ?? [];
+        fieldList = columnsFromQuery;
+      }
       return {
         ...initState,
         fieldList,
         removedLayers: [],
         indexPatternRefs,
+        initialContext,
       };
     },
     onRefreshIndexPattern() {},
@@ -161,9 +213,46 @@ export function getSQLDatasource({
       return true;
     },
     insertLayer(state: EsSQLPrivateState, newLayerId: string) {
+      const context = state.initialContext;
+      const contextColumns = [];
+      if (context && 'fieldName' in context && context.fieldName) {
+        const column = state.fieldList.find((col) => col.name === context.fieldName);
+        if (column) {
+          contextColumns.push(column);
+        }
+      }
+
+      const newColumnId = generateId();
+
+      const initialContextColumns =
+        contextColumns?.map((f) => {
+          return {
+            columnId: newColumnId,
+            meta: f.meta,
+            fieldName: f.name,
+          };
+        }) ?? [];
+
+      const allColumns =
+        state.fieldList.map((f) => {
+          return {
+            columnId: f.id,
+            meta: f.meta,
+            fieldName: f.name,
+          };
+        }) ?? [];
+      if (context && 'fieldName' in context && context.fieldName) {
+        const newColumn = {
+          columnId: newColumnId,
+          fieldName: context.fieldName,
+          meta: initialContextColumns[0].meta,
+        };
+        allColumns.push(newColumn);
+      }
+
       const layer = Object.values(state?.layers)?.[0];
-      const query = layer?.query;
-      const columns = layer?.allColumns ?? [];
+      const query = context && 'query' in context && context.query ? context.query : layer?.query;
+      const columns = layer?.allColumns ?? allColumns;
       const removedLayer = state.removedLayers[0];
       const newRemovedList = removedLayer ? state.removedLayers.slice(1) : state.removedLayers;
       const index =
@@ -174,7 +263,15 @@ export function getSQLDatasource({
         ...state,
         layers: {
           ...state.layers,
-          [newLayerId]: removedLayer ? removedLayer.layer : blankLayer(index, query, columns),
+          [newLayerId]:
+            context && 'indexPatternId' in context
+              ? {
+                  index: context.indexPatternId,
+                  query,
+                  columns: initialContextColumns,
+                  allColumns: columns ?? [],
+                }
+              : blankLayer(index, query, columns),
         },
         removedLayers: newRemovedList,
       };
@@ -284,6 +381,7 @@ export function getSQLDatasource({
       domElement: Element,
       props: DatasourceDimensionTriggerProps<EsSQLPrivateState>
     ) => {
+      console.dir(props);
       const layer = props.state.layers[props.layerId];
       const selectedField = layer?.allColumns?.find(
         (column) => column.columnId === props.columnId
@@ -583,7 +681,7 @@ export function getSQLDatasource({
       });
       return [];
     },
-    getDatasourceSuggestionsForVisualizeField: getSuggestionsForState,
+    getDatasourceSuggestionsForVisualizeField: getSuggestionsForField,
     getDatasourceSuggestionsFromCurrentState: getSuggestionsForState,
     getDatasourceSuggestionsForVisualizeCharts: getSuggestionsForState,
     isEqual: () => true,
@@ -592,7 +690,7 @@ export function getSQLDatasource({
   return sqlDatasource;
 }
 
-function blankLayer(index: string, query?: AggregateQuery, columns?: EsSQLLayerColumn[]) {
+function blankLayer(index: string, query?: Query | AggregateQuery, columns?: EsSQLLayerColumn[]) {
   return {
     index,
     query,

@@ -278,6 +278,7 @@ export function DiscoverSidebarResponsive(props: DiscoverSidebarResponsiveProps)
             setFieldFilter={setFieldFilter}
             editField={editField}
             createNewDataView={createNewDataView}
+            query={props.state.query}
           />
         </EuiHideFor>
       )}
@@ -345,6 +346,7 @@ export function DiscoverSidebarResponsive(props: DiscoverSidebarResponsiveProps)
                   editField={editField}
                   createNewDataView={createNewDataView}
                   showDataViewPicker={true}
+                  query={props.state.query}
                 />
               </div>
             </EuiFlyout>

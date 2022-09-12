@@ -356,6 +356,24 @@ export const LensTopNavMenu = ({
   }, [indexPatterns]);
 
   useEffect(() => {
+    if (
+      initialContext &&
+      isOfAggregateQueryType(query) &&
+      'indexPatternId' in initialContext &&
+      allLoaded
+    ) {
+      setIsOnTextBasedMode(true);
+      dispatch(
+        switchAndCleanDatasource({
+          newDatasourceId: getAggregateQueryMode(query),
+          visualizationId: visualization?.activeId,
+          currentIndexPatternId: initialContext.indexPatternId,
+        })
+      );
+    }
+  }, [allLoaded, dispatch, initialContext, query, visualization?.activeId]);
+
+  useEffect(() => {
     const fetchDataViews = async () => {
       const totalDataViewsList = [];
       const dataViewsIds = await data.dataViews.getIds();

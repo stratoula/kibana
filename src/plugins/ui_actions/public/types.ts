@@ -5,6 +5,7 @@
  * in compliance with, at your election, the Elastic License 2.0 or the Server
  * Side Public License, v 1.
  */
+import type { Query, AggregateQuery } from '@kbn/es-query';
 
 import { ActionInternal } from './actions/action_internal';
 import { TriggerInternal } from './triggers/trigger_internal';
@@ -18,6 +19,7 @@ export interface VisualizeFieldContext {
   indexPatternId: string;
   contextualFields?: string[];
   originatingApp?: string;
+  query?: Query | AggregateQuery;
 }
 
 export const ACTION_VISUALIZE_FIELD = 'ACTION_VISUALIZE_FIELD';

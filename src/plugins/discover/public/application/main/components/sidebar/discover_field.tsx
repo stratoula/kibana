@@ -22,6 +22,7 @@ import {
   EuiHorizontalRule,
 } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
+import type { Query, AggregateQuery } from '@kbn/es-query';
 import { UiCounterMetricType } from '@kbn/analytics';
 import classNames from 'classnames';
 import { FieldButton, FieldIcon } from '@kbn/react-field';
@@ -263,6 +264,8 @@ export interface DiscoverFieldProps {
    * Optionally show or hide field stats in the popover
    */
   showFieldStats?: boolean;
+
+  query?: Query | AggregateQuery;
 }
 
 function DiscoverFieldComponent({
@@ -279,6 +282,7 @@ function DiscoverFieldComponent({
   onEditField,
   onDeleteField,
   showFieldStats,
+  query,
 }: DiscoverFieldProps) {
   const [infoIsOpen, setOpen] = useState(false);
   const isDocumentRecord = !!onAddFilter;
@@ -391,9 +395,6 @@ function DiscoverFieldComponent({
       fieldInfoIcon={field.type === 'conflict' && <FieldInfoIcon />}
     />
   );
-  if (!isDocumentRecord) {
-    return button;
-  }
 
   const renderPopover = () => {
     const details = getDetails(field);
@@ -402,7 +403,7 @@ function DiscoverFieldComponent({
 
     return (
       <>
-        {showFieldStats && (
+        {isDocumentRecord && showFieldStats && (
           <>
             <EuiTitle size="xxxs">
               <h5>
@@ -420,7 +421,7 @@ function DiscoverFieldComponent({
           </>
         )}
 
-        {multiFields && (
+        {isDocumentRecord && multiFields && (
           <>
             {showFieldStats && <EuiSpacer size="m" />}
             <MultiFields
@@ -431,10 +432,11 @@ function DiscoverFieldComponent({
             />
           </>
         )}
-        {(showFieldStats || multiFields) && <EuiHorizontalRule margin="m" />}
+        {isDocumentRecord && (showFieldStats || multiFields) && <EuiHorizontalRule margin="m" />}
         <DiscoverFieldVisualize
           field={field}
           dataView={dataView}
+          query={query}
           multiFields={rawMultiFields}
           trackUiMetric={trackUiMetric}
           details={details}

@@ -22,6 +22,7 @@ import {
   useResizeObserver,
   EuiButton,
 } from '@elastic/eui';
+import type { Query, AggregateQuery } from '@kbn/es-query';
 import useShallowCompareEffect from 'react-use/lib/useShallowCompareEffect';
 import { isEqual } from 'lodash';
 import { FormattedMessage } from '@kbn/i18n-react';
@@ -93,6 +94,7 @@ export interface DiscoverSidebarProps extends Omit<DiscoverSidebarResponsiveProp
   viewMode: VIEW_MODE;
 
   showDataViewPicker?: boolean;
+  query?: Query | AggregateQuery;
 }
 
 export function DiscoverSidebarComponent({
@@ -116,6 +118,7 @@ export function DiscoverSidebarComponent({
   viewMode,
   createNewDataView,
   showDataViewPicker,
+  query,
 }: DiscoverSidebarProps) {
   const { uiSettings, dataViewFieldEditor } = useDiscoverServices();
   const [fields, setFields] = useState<DataViewField[] | null>(null);
@@ -412,6 +415,7 @@ export function DiscoverSidebarComponent({
                                 onEditField={editField}
                                 onDeleteField={deleteField}
                                 showFieldStats={showFieldStats}
+                                query={query}
                               />
                             </li>
                           );

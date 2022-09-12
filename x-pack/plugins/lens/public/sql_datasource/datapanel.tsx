@@ -56,17 +56,25 @@ export function EsSQLDataPanel({
         const indexPatternRefs: IndexPatternRef[] = await loadIndexPatternRefs(dataViews);
         const errors: Error[] = [];
         const layerIds = Object.keys(state.layers);
+        // const context = state.initialContext;
         const newLayerId = layerIds.length > 0 ? layerIds[0] : generateId();
         const indexPattern = getIndexPatternFromSQLQuery(query.sql);
         const index = indexPatternRefs.find((r) => r.title === indexPattern)?.id ?? '';
         let columnsFromQuery: DatatableColumn[] = [];
         let unique: EsSQLLayerColumn[] = [];
         let timeFieldName;
+        // const contextColumns = [];
         try {
           const table = await fetchSql(query, dataViews, data, expressions);
           const dataView = await dataViews.get(index);
           timeFieldName = dataView.timeFieldName;
           columnsFromQuery = table?.columns ?? [];
+          // if (context && 'fieldName' in context) {
+          //   const column = columnsFromQuery.find((col) => col.name === context.fieldName);
+          //   if (column) {
+          //     contextColumns.push(column);
+          //   }
+          // }
           const existingColumns = state.layers[newLayerId].allColumns;
           const columns = [
             ...existingColumns,
@@ -90,6 +98,7 @@ export function EsSQLDataPanel({
         }
 
         const tempState = {
+          ...state,
           layers: {
             [newLayerId]: {
               index,
@@ -106,12 +115,12 @@ export function EsSQLDataPanel({
           ...tempState,
           fieldList: columnsFromQuery ?? [],
           removedLayers: [],
-          indexPatternRefs,
+          initialContext: state.initialContext,
         });
       }
     }
     fetchData();
-  }, [data, dataViews, expressions, prevQuery, query, setState, state.layers]);
+  }, [data, dataViews, expressions, prevQuery, query, setState, state]);
 
   const [openPopover, setOpenPopover] = useState('');
 
