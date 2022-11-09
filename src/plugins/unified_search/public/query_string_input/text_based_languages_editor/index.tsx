@@ -43,10 +43,16 @@ import {
   parseErrors,
   getInlineEditorText,
   getDocumentationSections,
+  monacoPositionToOffset,
 } from './helpers';
 import { EditorFooter } from './editor_footer';
 import { ResizableButton } from './resizable_button';
-
+import {
+  type ESQLSuggestions,
+  SUGGESTION_TYPE,
+  suggest,
+  getSuggestion,
+} from './esql_autocomplete_helpers';
 import './overwrite.scss';
 import { IUnifiedSearchPluginServices } from '../../types';
 
@@ -245,6 +251,33 @@ export const TextBasedLanguagesEditor = memo(function TextBasedLanguagesEditor({
     [errors]
   );
 
+  const provideCompletionItems = useCallback(
+    async (
+      model: monaco.editor.ITextModel,
+      position: monaco.Position,
+      context: monaco.languages.CompletionContext
+    ) => {
+      const innerText = model.getValue();
+      let aSuggestions: ESQLSuggestions = {
+        list: [],
+        type: SUGGESTION_TYPE.FIELD,
+      };
+      const offset = monacoPositionToOffset(innerText, position);
+      aSuggestions = await suggest({
+        expression: innerText,
+        zeroIndexedOffset: offset,
+        context,
+      });
+
+      return {
+        suggestions: aSuggestions.list.map((s) =>
+          getSuggestion(s, aSuggestions.type, context.triggerCharacter, aSuggestions.range)
+        ),
+      };
+    },
+    []
+  );
+
   // Clean up the monaco editor and DOM on unmount
   useEffect(() => {
     const model = editorModel;
@@ -254,6 +287,20 @@ export const TextBasedLanguagesEditor = memo(function TextBasedLanguagesEditor({
       editor1ref.current?.dispose();
     };
   }, []);
+
+  // autocomplete is provided only for ESQL lang
+  useEffect(() => {
+    if (language === 'esql') {
+      const { dispose: dispose1 } = monaco.languages.registerCompletionItemProvider(ES_QLLang.ID, {
+        triggerCharacters: ['.', '(', '=', ' ', ':', `'`, '|'],
+        provideCompletionItems,
+      });
+
+      return () => {
+        dispose1();
+      };
+    }
+  }, [language, provideCompletionItems]);
 
   const calculateVisibleCode = useCallback(
     (width: number, force?: boolean) => {

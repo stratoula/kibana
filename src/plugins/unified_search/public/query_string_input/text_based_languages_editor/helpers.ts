@@ -152,3 +152,14 @@ export const getDocumentationSections = async (language: string) => {
 export const getInlineEditorText = (queryString: string, isMultiLine: boolean) => {
   return isMultiLine ? queryString.replace(/\r?\n|\r/g, ' ').replace(/  +/g, ' ') : queryString;
 };
+
+export function monacoPositionToOffset(expression: string, position: monaco.Position): number {
+  const lines = expression.split(/\n/);
+  return lines
+    .slice(0, position.lineNumber)
+    .reduce(
+      (prev, current, index) =>
+        prev + (index === position.lineNumber - 1 ? position.column - 1 : current.length + 1),
+      0
+    );
+}
