@@ -62,6 +62,7 @@ export function ChangeDataView({
   isMissingCurrent,
   currentDataViewId,
   adHocDataViews,
+  onTimeFieldChange,
   savedDataViews,
   onChangeDataView,
   onAddField,

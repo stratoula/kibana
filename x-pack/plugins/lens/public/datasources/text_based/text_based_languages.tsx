@@ -318,6 +318,25 @@ export function getTextBasedDatasource({
         })
       );
     },
+    updateTimeField: (
+      state: TextBasedPrivateState,
+      currentDataViewId: string,
+      timeField?: string
+    ) => {
+      const layers = { ...state?.layers };
+      Object.entries(state?.layers).forEach(([key, layer]) => {
+        layers[key] = {
+          ...layer,
+          timeField,
+          index: currentDataViewId,
+        };
+      });
+      return {
+        ...state,
+        hasTimeFieldChanged: true,
+        layers,
+      };
+    },
     getUsedDataView: (state: TextBasedPrivateState, layerId?: string) => {
       if (!layerId) {
         const layers = Object.values(state.layers);

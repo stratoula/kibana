@@ -88,10 +88,6 @@ export async function getStateFromAggregateQuery(
       if (dataView.fields.getByName('@timestamp')?.type === 'date') {
         dataView.timeFieldName = '@timestamp';
       }
-      // if (dataView.fields.getByType('date')) {
-      //   const dateFields = dataView.fields.getByType('date');
-      //   dataView.timeFieldName = dateFields[0].name;
-      // }
       if (dataView && dataView.id) {
         index = dataView?.id;
         indexPatternRefs.push({
@@ -102,6 +98,57 @@ export async function getStateFromAggregateQuery(
       }
     }
     timeFieldName = dataView?.timeFieldName;
+    const table = await fetchDataFromAggregateQuery(
+      query,
+      dataViews,
+      data,
+      expressions,
+      timeFieldName
+    );
+    columnsFromQuery = table?.columns ?? [];
+    allColumns = getAllColumns(state.layers[newLayerId].allColumns, columnsFromQuery);
+  } catch (e) {
+    errors.push(e);
+  }
+
+  const tempState = {
+    layers: {
+      [newLayerId]: {
+        index,
+        query,
+        columns: state.layers[newLayerId].columns ?? [],
+        allColumns,
+        timeField: timeFieldName,
+        errors,
+      },
+    },
+  };
+
+  return {
+    ...tempState,
+    fieldList: columnsFromQuery ?? [],
+    indexPatternRefs,
+    initialContext: context,
+  };
+}
+
+export async function getStateFromTimeFieldUpdate(
+  state: TextBasedPrivateState,
+  query: AggregateQuery,
+  dataViews: DataViewsPublicPluginStart,
+  data: DataPublicPluginStart,
+  expressions: ExpressionsStart
+) {
+  const indexPatternRefs: IndexPatternRef[] = await loadIndexPatternRefs(dataViews);
+  const errors: Error[] = [];
+  const layerIds = Object.keys(state.layers);
+  const context = state.initialContext;
+  const newLayerId = layerIds.length > 0 ? layerIds[0] : generateId();
+  let columnsFromQuery: DatatableColumn[] = [];
+  let allColumns: TextBasedLayerColumn[] = [];
+  const timeFieldName = state.layers[newLayerId].timeField;
+  const index = state.layers[newLayerId].index;
+  try {
     const table = await fetchDataFromAggregateQuery(
       query,
       dataViews,

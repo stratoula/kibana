@@ -144,6 +144,10 @@ export const switchAndCleanDatasource = createAction<{
   visualizationId: string | null;
   currentIndexPatternId?: string;
 }>('lens/switchAndCleanDatasource');
+export const updateDataViewTimeField = createAction<{
+  currentIndexPatternId?: string;
+  newTimeField?: string;
+}>('lens/updateDataViewTimeField');
 export const navigateAway = createAction<void>('lens/navigateAway');
 export const loadInitial = createAction<{
   initialInput?: LensEmbeddableInput;
@@ -231,6 +235,7 @@ export const lensActions = {
   submitSuggestion,
   switchDatasource,
   switchAndCleanDatasource,
+  updateDataViewTimeField,
   navigateAway,
   loadInitial,
   initEmpty,
@@ -811,6 +816,45 @@ export const makeLensReducer = (storeDeps: LensStoreDeps) => {
         visualization: {
           ...visualization,
           state: newVizState,
+        },
+      };
+    },
+    [updateDataViewTimeField.type]: (
+      state,
+      {
+        payload,
+      }: {
+        payload: {
+          currentIndexPatternId?: string;
+          newTimeField?: string;
+        };
+      }
+    ) => {
+      const visualization = state.visualization;
+      const activeDatasourceId = state.activeDatasourceId;
+      if (!activeDatasourceId) {
+        return state;
+      }
+
+      const datasourceState = current(state).datasourceStates[activeDatasourceId]?.state;
+      const updatedState = payload.currentIndexPatternId
+        ? datasourceMap[activeDatasourceId].updateTimeField?.(
+            datasourceState,
+            payload.currentIndexPatternId,
+            payload.newTimeField
+          )
+        : datasourceState;
+
+      return {
+        ...state,
+        datasourceStates: {
+          [activeDatasourceId]: {
+            state: updatedState,
+            isLoading: false,
+          },
+        },
+        visualization: {
+          ...visualization,
         },
       };
     },

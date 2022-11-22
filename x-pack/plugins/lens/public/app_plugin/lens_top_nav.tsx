@@ -32,6 +32,7 @@ import {
   LensAppState,
   DispatchSetState,
   switchAndCleanDatasource,
+  updateDataViewTimeField,
 } from '../state_management';
 import {
   getIndexPatternsObjects,
@@ -824,74 +825,113 @@ export const LensTopNavMenu = ({
     ]
   );
 
-  // setting that enables/disables SQL
-  const isSQLModeEnabled = uiSettings.get(ENABLE_SQL);
-  const supportedTextBasedLanguages = [];
-  if (isSQLModeEnabled) {
-    supportedTextBasedLanguages.push('SQL');
-  }
-
-  const dataViewPickerProps: DataViewPickerProps = {
-    trigger: {
-      label: currentIndexPattern?.getName?.() || '',
-      'data-test-subj': 'lns-dataView-switch-link',
-      title: currentIndexPattern?.title || '',
-    },
-    currentDataViewId: currentIndexPattern?.id,
-    onAddField: addField,
-    onDataViewCreated: createNewDataView,
+  const dataViewPickerProps: DataViewPickerProps = useMemo(() => {
+    // setting that enables/disables SQL
+    const isSQLModeEnabled = uiSettings.get(ENABLE_SQL);
+    const supportedTextBasedLanguages = [];
+    if (isSQLModeEnabled) {
+      supportedTextBasedLanguages.push('SQL');
+    }
+    const adHocDataViews = indexPatterns.filter((pattern) => !pattern.isPersisted());
+    if (currentIndexPattern && !currentIndexPattern?.isPersisted()) {
+      const adHocExists = adHocDataViews.find((adhoc) => adhoc.id === currentIndexPattern.id);
+      if (!adHocExists) {
+        adHocDataViews.push(currentIndexPattern);
+      }
+    }
+    return {
+      trigger: {
+        label: currentIndexPattern?.getName?.() || '',
+        'data-test-subj': 'lns-dataView-switch-link',
+        title: currentIndexPattern?.title || '',
+      },
+      currentDataViewId: currentIndexPattern?.id,
+      onAddField: addField,
+      onDataViewCreated: createNewDataView,
+      onCreateDefaultAdHocDataView,
+      adHocDataViews,
+      onTimeFieldChange: async (timeField) => {
+        if (currentIndexPattern) {
+          const newDataView = currentIndexPattern;
+          newDataView.timeFieldName = timeField;
+          // await indexPatternService.replaceDataViewId(newDataView);
+          dispatch(
+            updateDataViewTimeField({
+              newTimeField: timeField,
+              currentIndexPatternId: currentIndexPattern?.id,
+            })
+          );
+        }
+      },
+      onChangeDataView: async (newIndexPatternId: string) => {
+        const currentDataView = await data.dataViews.get(newIndexPatternId);
+        setCurrentIndexPattern(currentDataView);
+        dispatchChangeIndexPattern(newIndexPatternId);
+        if (isOnTextBasedMode) {
+          dispatch(
+            switchAndCleanDatasource({
+              newDatasourceId: 'formBased',
+              visualizationId: visualization?.activeId,
+              currentIndexPatternId: newIndexPatternId,
+            })
+          );
+          setIsOnTextBasedMode(false);
+        }
+      },
+      onEditDataView: async (updatedDataViewStub) => {
+        if (!currentIndexPattern) return;
+        if (currentIndexPattern.isPersisted()) {
+          // clear instance cache and fetch again to make sure fields are up to date (in case pattern changed)
+          dataViewsService.clearInstanceCache(currentIndexPattern.id);
+          const updatedCurrentIndexPattern = await dataViewsService.get(currentIndexPattern.id!);
+          // if the data view was persisted, reload it from cache
+          const updatedCache = {
+            ...dataViews.indexPatterns,
+          };
+          delete updatedCache[currentIndexPattern.id!];
+          const newIndexPatterns = await indexPatternService.ensureIndexPattern({
+            id: updatedCurrentIndexPattern.id!,
+            cache: updatedCache,
+          });
+          dispatch(
+            changeIndexPattern({
+              dataViews: { indexPatterns: newIndexPatterns },
+              indexPatternId: updatedCurrentIndexPattern.id!,
+            })
+          );
+          // Renew session id to make sure the request is done again
+          dispatchSetState({
+            searchSessionId: data.search.session.start(),
+            resolvedDateRange: getResolvedDateRange(data.query.timefilter.timefilter),
+          });
+          // update list of index patterns to pick up mutations in the changed data view
+          setCurrentIndexPattern(updatedCurrentIndexPattern);
+        } else {
+          // if it was an ad-hoc data view, we need to switch to a new data view anyway
+          indexPatternService.replaceDataViewId(updatedDataViewStub);
+        }
+      },
+      textBasedLanguages: supportedTextBasedLanguages as DataViewPickerProps['textBasedLanguages'],
+    };
+  }, [
+    addField,
+    createNewDataView,
+    currentIndexPattern,
+    data.dataViews,
+    data.query.timefilter.timefilter,
+    data.search.session,
+    dataViews.indexPatterns,
+    dataViewsService,
+    dispatch,
+    dispatchChangeIndexPattern,
+    dispatchSetState,
+    indexPatternService,
+    indexPatterns,
+    isOnTextBasedMode,
     onCreateDefaultAdHocDataView,
-    adHocDataViews: indexPatterns.filter((pattern) => !pattern.isPersisted()),
-    onChangeDataView: async (newIndexPatternId: string) => {
-      const currentDataView = await data.dataViews.get(newIndexPatternId);
-      setCurrentIndexPattern(currentDataView);
-      dispatchChangeIndexPattern(newIndexPatternId);
-      if (isOnTextBasedMode) {
-        dispatch(
-          switchAndCleanDatasource({
-            newDatasourceId: 'formBased',
-            visualizationId: visualization?.activeId,
-            currentIndexPatternId: newIndexPatternId,
-          })
-        );
-        setIsOnTextBasedMode(false);
-      }
-    },
-    onEditDataView: async (updatedDataViewStub) => {
-      if (!currentIndexPattern) return;
-      if (currentIndexPattern.isPersisted()) {
-        // clear instance cache and fetch again to make sure fields are up to date (in case pattern changed)
-        dataViewsService.clearInstanceCache(currentIndexPattern.id);
-        const updatedCurrentIndexPattern = await dataViewsService.get(currentIndexPattern.id!);
-        // if the data view was persisted, reload it from cache
-        const updatedCache = {
-          ...dataViews.indexPatterns,
-        };
-        delete updatedCache[currentIndexPattern.id!];
-        const newIndexPatterns = await indexPatternService.ensureIndexPattern({
-          id: updatedCurrentIndexPattern.id!,
-          cache: updatedCache,
-        });
-        dispatch(
-          changeIndexPattern({
-            dataViews: { indexPatterns: newIndexPatterns },
-            indexPatternId: updatedCurrentIndexPattern.id!,
-          })
-        );
-        // Renew session id to make sure the request is done again
-        dispatchSetState({
-          searchSessionId: data.search.session.start(),
-          resolvedDateRange: getResolvedDateRange(data.query.timefilter.timefilter),
-        });
-        // update list of index patterns to pick up mutations in the changed data view
-        setCurrentIndexPattern(updatedCurrentIndexPattern);
-      } else {
-        // if it was an ad-hoc data view, we need to switch to a new data view anyway
-        indexPatternService.replaceDataViewId(updatedDataViewStub);
-      }
-    },
-    textBasedLanguages: supportedTextBasedLanguages as DataViewPickerProps['textBasedLanguages'],
-  };
+    uiSettings,
+    visualization?.activeId,
+  ]);
 
   // text based languages errors should also appear to the unified search bar
   const textBasedLanguageModeErrors: Error[] = [];

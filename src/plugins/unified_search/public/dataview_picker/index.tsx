@@ -55,6 +55,10 @@ export interface DataViewPickerProps {
    */
   adHocDataViews?: DataView[];
   /**
+   * on timefield change callback.
+   */
+  onTimeFieldChange?: (timeField?: string) => void;
+  /**
    * Saved data views
    */
   savedDataViews?: DataViewListItem[];

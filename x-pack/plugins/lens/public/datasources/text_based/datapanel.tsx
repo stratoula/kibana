@@ -26,7 +26,7 @@ import {
 import { FieldButton } from '@kbn/react-field';
 import type { DatasourceDataPanelProps } from '../../types';
 import type { TextBasedPrivateState } from './types';
-import { getStateFromAggregateQuery } from './utils';
+import { getStateFromAggregateQuery, getStateFromTimeFieldUpdate } from './utils';
 import { ChildDragDropProvider, DragDrop } from '../../drag_drop';
 import { DataType } from '../../types';
 import { LensFieldIcon } from '../../shared_components';
@@ -70,6 +70,33 @@ export function TextBasedDataPanel({
 
         setDataHasLoaded(true);
         setState(stateFromQuery);
+      }
+    }
+    fetchData();
+  }, [data, dataViews, expressions, prevQuery, query, setState, state]);
+
+  useEffect(() => {
+    async function fetchData() {
+      if (
+        query &&
+        isOfAggregateQueryType(query) &&
+        state &&
+        state.layers &&
+        isEqual(query, prevQuery) &&
+        state.hasTimeFieldChanged
+      ) {
+        const stateFromQuery = await getStateFromTimeFieldUpdate(
+          state,
+          query,
+          dataViews,
+          data,
+          expressions
+        );
+        setDataHasLoaded(true);
+        setState({
+          ...stateFromQuery,
+          hasTimeFieldChanged: false,
+        });
       }
     }
     fetchData();

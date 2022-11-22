@@ -37,6 +37,7 @@ export type TextBasedPrivateState = TextBasedPersistedState & {
   indexPatternRefs: IndexPatternRef[];
   fieldList: DatatableColumn[];
   initialContext?: VisualizeFieldContext | VisualizeEditorContext;
+  hasTimeFieldChanged?: boolean;
 };
 
 export interface IndexPatternRef {

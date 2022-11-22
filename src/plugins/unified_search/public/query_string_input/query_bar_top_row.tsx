@@ -26,6 +26,9 @@ import {
   OnRefreshProps,
   useIsWithinBreakpoints,
   EuiSuperUpdateButton,
+  EuiFormRow,
+  EuiComboBox,
+  EuiComboBoxOptionOption,
 } from '@elastic/eui';
 import { TimeHistoryContract, getQueryLog } from '@kbn/data-plugin/public';
 import { i18n } from '@kbn/i18n';
@@ -46,6 +49,7 @@ import {
 import { FilterButtonGroup } from '../filter_bar/filter_button_group/filter_button_group';
 import type { SuggestionsListSize } from '../typeahead/suggestions_component';
 import { TextBasedLanguagesEditor } from './text_based_languages_editor';
+import { extractTimeFields } from './extract_time_fields';
 import './query_bar.scss';
 
 const SuperDatePicker = React.memo(
@@ -175,6 +179,32 @@ export const QueryBarTopRow = React.memo(
 
     const [isDateRangeInvalid, setIsDateRangeInvalid] = useState(false);
     const [isQueryInputFocused, setIsQueryInputFocused] = useState(false);
+    const [timeField, setTimeField] = useState<Array<EuiComboBoxOptionOption<string>>>([]);
+    const [timeFieldSelectionOptions, setTimeFieldSelectionOptions] = useState<
+      Array<EuiComboBoxOptionOption<string>>
+    >([]);
+
+    useEffect(() => {
+      const adHocDataViews = props.dataViewPickerComponentProps?.adHocDataViews ?? [];
+      if (adHocDataViews.length) {
+        const adHocDataView = adHocDataViews.find(
+          (adHoc) => adHoc.id === props.dataViewPickerComponentProps?.currentDataViewId
+        );
+        const options = adHocDataView ? extractTimeFields(adHocDataView.fields) : [];
+        setTimeFieldSelectionOptions(options);
+        if (adHocDataView && adHocDataView.timeFieldName) {
+          setTimeField([
+            {
+              label: adHocDataView.timeFieldName,
+              value: adHocDataView.timeFieldName,
+            },
+          ]);
+        }
+      }
+    }, [
+      props.dataViewPickerComponentProps?.adHocDataViews,
+      props.dataViewPickerComponentProps?.currentDataViewId,
+    ]);
 
     const kibana = useKibana<IUnifiedSearchPluginServices>();
 
@@ -396,6 +426,51 @@ export const QueryBarTopRow = React.memo(
             isQuickSelectOnly={isMobile ? false : isQueryInputFocused}
             width={isMobile ? 'full' : 'auto'}
             compressed={shouldShowDatePickerAsBadge()}
+            customQuickSelectPanels={
+              timeFieldSelectionOptions.length
+                ? [
+                    {
+                      title: 'Select timefield',
+                      content: (
+                        <EuiFormRow fullWidth>
+                          <>
+                            <EuiComboBox
+                              placeholder={i18n.translate(
+                                'unifiedSearch.timeFieldSelector.placeholderLabel',
+                                {
+                                  defaultMessage: 'Select a timestamp field',
+                                }
+                              )}
+                              singleSelection={{ asPlainText: true }}
+                              options={timeFieldSelectionOptions}
+                              selectedOptions={timeField}
+                              onChange={(
+                                selectedOptions: Array<EuiComboBoxOptionOption<string>>
+                              ) => {
+                                setTimeField(selectedOptions);
+
+                                if (selectedOptions.length) {
+                                  const value = selectedOptions[0].value || undefined;
+                                  props.dataViewPickerComponentProps?.onTimeFieldChange?.(value);
+                                }
+                              }}
+                              isClearable={false}
+                              data-test-subj="timestampField"
+                              aria-label={i18n.translate(
+                                'unifiedSearch.timeFieldSelector.timestampSelectAriaLabel',
+                                {
+                                  defaultMessage: 'Timestamp field',
+                                }
+                              )}
+                              fullWidth
+                            />
+                          </>
+                        </EuiFormRow>
+                      ),
+                    },
+                  ]
+                : undefined
+            }
           />
         </EuiFlexItem>
       );

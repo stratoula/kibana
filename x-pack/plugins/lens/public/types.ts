@@ -484,6 +484,11 @@ export interface Datasource<T = unknown, P = unknown> {
    * Get the used DataView value from state
    */
   getUsedDataView: (state: T, layerId?: string) => string;
+
+  /**
+   * Replace the time field
+   */
+  updateTimeField?: (state: T, currentDataViewId: string, timeField?: string) => T;
   /**
    * Get all the used DataViews from state
    */
