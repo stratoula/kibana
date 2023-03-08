@@ -5,7 +5,7 @@
  * in compliance with, at your election, the Elastic License 2.0 or the Server
  * Side Public License, v 1.
  */
-
+import { isOfAggregateQueryType } from '@kbn/es-query';
 import { SortOrder } from '@kbn/saved-search-plugin/public';
 import { DataView } from '@kbn/data-views-plugin/common';
 import { addLog } from '../../../../utils/add_log';
@@ -37,6 +37,7 @@ export async function changeDataView(
   const { dataViews, uiSettings } = services;
   const dataView = discoverState.internalState.getState().dataView;
   const state = discoverState.appState.getState();
+  const isTextBasedMode = state.query && isOfAggregateQueryType(state.query);
   let nextDataView: DataView | null = null;
 
   try {
@@ -46,6 +47,10 @@ export async function changeDataView(
   }
 
   if (nextDataView && dataView) {
+    const nextQuery = discoverState.appState.getState().query;
+    const isNextQueryTextBased = nextQuery && isOfAggregateQueryType(nextQuery);
+    const resetColumns =
+      (isTextBasedMode && !isNextQueryTextBased) || (!isTextBasedMode && isNextQueryTextBased);
     const nextAppState = getDataViewAppState(
       dataView,
       nextDataView,
@@ -53,7 +58,7 @@ export async function changeDataView(
       (state.sort || []) as SortOrder[],
       uiSettings.get(MODIFY_COLUMNS_ON_SWITCH),
       uiSettings.get(SORT_DEFAULT_ORDER_SETTING),
-      state.query
+      resetColumns
     );
 
     setUrlTracking(nextDataView);

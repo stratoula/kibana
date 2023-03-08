@@ -218,15 +218,31 @@ export const useDiscoverHistogram = ({
   }, [breakdownField, unifiedHistogram]);
 
   const columns = useAppStateSelector((state) => state.columns);
+
   const documentState = useDataState(savedSearchData$.documents$);
   useEffect(() => {
-    // Update the columns only when the query changes
-    if (!isEqual(columns, prev.current.columns) && !isEqual(query, prev.current.query)) {
+    const initialFetch = !prev?.current?.columns?.length;
+    if (isPlainRecord && initialFetch && !isEqual(columns, prev.current.columns)) {
+      console.log(columns);
       unifiedHistogram?.setColumns(columns);
       prev.current.query = query;
       prev.current.columns = columns;
+    } else if (
+      isPlainRecord &&
+      !initialFetch &&
+      !isEqual(columns, prev.current.columns) &&
+      !isEqual(query, prev.current.query)
+    ) {
+      console.log('woof');
+      unifiedHistogram?.setColumns(columns);
+      prev.current.query = query;
+      prev.current.columns = columns;
+    } else if (!isPlainRecord) {
+      prev.current.columns = [];
+      unifiedHistogram?.setColumns([]);
+      prev.current.query = query;
     }
-  }, [columns, query, unifiedHistogram]);
+  }, [columns, isPlainRecord, query, unifiedHistogram]);
 
   useEffect(() => {
     if (isPlainRecord) {

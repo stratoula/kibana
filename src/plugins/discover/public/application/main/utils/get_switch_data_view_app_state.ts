@@ -5,7 +5,6 @@
  * in compliance with, at your election, the Elastic License 2.0 or the Server
  * Side Public License, v 1.
  */
-import { isOfAggregateQueryType, Query, AggregateQuery } from '@kbn/es-query';
 import type { DataView } from '@kbn/data-views-plugin/public';
 import type { SortOrder } from '@kbn/saved-search-plugin/public';
 import { getSortArray } from '../../../utils/sorting';
@@ -21,7 +20,7 @@ export function getDataViewAppState(
   currentSort: SortOrder[],
   modifyColumns: boolean = true,
   sortDirection: string = 'desc',
-  query?: Query | AggregateQuery
+  resetColumns?: boolean
 ) {
   const nextColumns = modifyColumns
     ? currentColumns.filter(
@@ -31,7 +30,7 @@ export function getDataViewAppState(
     : currentColumns;
 
   let columns = nextColumns.length ? nextColumns : [];
-  if (query && isOfAggregateQueryType(query)) {
+  if (resetColumns) {
     columns = [];
   }
 

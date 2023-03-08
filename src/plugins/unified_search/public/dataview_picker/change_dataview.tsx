@@ -368,6 +368,9 @@ export function ChangeDataView({
             setIsTextBasedLangSelected(true);
             // also update the query with the sql query
             onTextLangQuerySubmit?.({ sql: `SELECT * FROM "${trigger.title}"` });
+            if (selectedDataViewId) {
+              onChangeDataView(selectedDataViewId);
+            }
           }}
         />
       );
