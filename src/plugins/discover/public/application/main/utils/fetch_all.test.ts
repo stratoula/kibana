@@ -23,7 +23,7 @@ import {
   SavedSearchData,
 } from '../services/discover_data_state_container';
 import { fetchDocuments } from './fetch_documents';
-import { fetchSql } from './fetch_sql';
+import { fetchTextBased } from './fetch_text_based';
 import { buildDataTableRecord } from '../../../utils/build_data_record';
 import { dataViewMock } from '../../../__mocks__/data_view';
 import { AppState } from '../services/discover_app_state_container';
@@ -32,12 +32,12 @@ jest.mock('./fetch_documents', () => ({
   fetchDocuments: jest.fn().mockResolvedValue([]),
 }));
 
-jest.mock('./fetch_sql', () => ({
-  fetchSql: jest.fn().mockResolvedValue([]),
+jest.mock('./fetch_text_based', () => ({
+  fetchTextBased: jest.fn().mockResolvedValue([]),
 }));
 
 const mockFetchDocuments = fetchDocuments as unknown as jest.MockedFunction<typeof fetchDocuments>;
-const mockFetchSQL = fetchSql as unknown as jest.MockedFunction<typeof fetchSql>;
+const mockfetchTextBased = fetchTextBased as unknown as jest.MockedFunction<typeof fetchTextBased>;
 
 function subjectCollector<T>(subject: Subject<T>): () => Promise<T[]> {
   const promise = firstValueFrom(
@@ -83,7 +83,7 @@ describe('test fetchAll', () => {
     searchSource = savedSearchMock.searchSource.createChild();
 
     mockFetchDocuments.mockReset().mockResolvedValue({ records: [] });
-    mockFetchSQL.mockReset().mockResolvedValue({ records: [] });
+    mockfetchTextBased.mockReset().mockResolvedValue({ records: [] });
   });
 
   test('changes of fetchStatus when starting with FetchStatus.UNINITIALIZED', async () => {
@@ -248,7 +248,7 @@ describe('test fetchAll', () => {
       { _id: '2', _index: 'logs' },
     ];
     const documents = hits.map((hit) => buildDataTableRecord(hit, dataViewMock));
-    mockFetchSQL.mockResolvedValue({
+    mockfetchTextBased.mockResolvedValue({
       records: documents,
       textBasedQueryColumns: [{ id: '1', name: 'test1', meta: { type: 'number' } }],
     });

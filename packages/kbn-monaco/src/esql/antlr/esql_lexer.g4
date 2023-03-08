@@ -15,7 +15,7 @@ STATS : 'stats' -> pushMode(EXPRESSION);
 WHERE : 'where' -> pushMode(EXPRESSION);
 SORT : 'sort' -> pushMode(EXPRESSION);
 LIMIT : 'limit' -> pushMode(EXPRESSION);
-PROJECT : 'project' -> pushMode(SOURCE_IDENTIFIERS);
+PROJECT : 'project' -> pushMode(EXPRESSION);
 
 LINE_COMMENT
     : '//' ~[\r\n]* '\r'? '\n'? -> channel(HIDDEN)
@@ -114,16 +114,19 @@ NULLS_ORDERING_DIRECTION
     | 'last'
     ;
 
-UNARY_FUNCTION
+MATH_FUNCTION
     : 'round'
-    | 'avg'
+    ;
+
+UNARY_FUNCTION
+    : 'avg'
     | 'min'
     | 'max'
     | 'sum'
     ;
 
 UNQUOTED_IDENTIFIER
-    : (LETTER | '_') (LETTER | DIGIT | '_')*
+    : (LETTER | '_') (LETTER | DIGIT | '_' | ASTERISK)*
     ;
 
 QUOTED_IDENTIFIER

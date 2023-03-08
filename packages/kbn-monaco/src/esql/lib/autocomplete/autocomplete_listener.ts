@@ -47,6 +47,7 @@ import {
   BooleanExpressionContext,
   LimitCommandContext,
   ValueExpressionContext,
+  ProjectCommandContext,
 } from '../../antlr/esql_parser';
 
 export class AutocompleteListener implements ESQLParserListener {
@@ -58,9 +59,10 @@ export class AutocompleteListener implements ESQLParserListener {
   private parentContext: number | undefined;
 
   private get fields() {
-    return this.tables.length > 1
-      ? buildConstantsDefinitions(this.tables.at(-2)!)
-      : [DynamicAutocompleteItem.FieldIdentifier];
+    const fieldsSuggestions: Array<DynamicAutocompleteItem | AutocompleteCommandDefinition> = [
+      DynamicAutocompleteItem.FieldIdentifier,
+    ];
+    return fieldsSuggestions;
   }
 
   private get hasSuggestions() {
@@ -155,6 +157,15 @@ export class AutocompleteListener implements ESQLParserListener {
     }
   }
 
+  exitProjectCommand?(ctx: ProjectCommandContext) {
+    const qn = ctx.qualifiedNames();
+    if (qn && qn.text) {
+      if (qn.text.slice(-1) !== ',') {
+        this.suggestions = this.getEndCommandSuggestions();
+      }
+    }
+  }
+
   exitQualifiedName(ctx: QualifiedNameContext) {
     if (
       ctx
@@ -222,7 +233,9 @@ export class AutocompleteListener implements ESQLParserListener {
     const isInEval = this.parentContext === ESQLParser.EVAL;
 
     if (this.parentContext && (isInStats || isInEval)) {
-      const hasFN = ctx.tryGetToken(esql_parser.UNARY_FUNCTION, 0);
+      const hasFN =
+        ctx.tryGetToken(esql_parser.UNARY_FUNCTION, 0) ||
+        ctx.tryGetToken(esql_parser.MATH_FUNCTION, 0);
       const hasLP = ctx.tryGetToken(esql_parser.LP, 0);
       const hasRP = ctx.tryGetToken(esql_parser.RP, 0);
 

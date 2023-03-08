@@ -9,6 +9,7 @@ import { isEqual } from 'lodash';
 import {
   isOfAggregateQueryType,
   getIndexPatternFromSQLQuery,
+  getIndexPatternFromESQLQuery,
   AggregateQuery,
   Query,
 } from '@kbn/es-query';
@@ -60,7 +61,10 @@ export function useTextBasedQueryLanguage({
       const { columns: stateColumns, index } = stateContainer.appState.getState();
       let nextColumns: string[] = [];
       const isTextBasedQueryLang =
-        recordRawType === 'plain' && isOfAggregateQueryType(query) && 'sql' in query;
+        recordRawType === 'plain' &&
+        query &&
+        isOfAggregateQueryType(query) &&
+        ('sql' in query || 'esql' in query);
       const hasResults = next.result?.length && next.fetchStatus === FetchStatus.COMPLETE;
       const initialFetch = !prev.current.columns.length;
 
@@ -81,7 +85,10 @@ export function useTextBasedQueryLanguage({
             prev.current = { columns: firstRowColumns, query };
           }
         }
-        const indexPatternFromQuery = getIndexPatternFromSQLQuery(query.sql);
+        const indexPatternFromQuery =
+          'sql' in query
+            ? getIndexPatternFromSQLQuery(query.sql)
+            : getIndexPatternFromESQLQuery(query.esql);
         const internalState = stateContainer.internalState.getState();
         const dataViewList = [...internalState.savedDataViews, ...internalState.adHocDataViews];
         let dataViewObj = dataViewList.find(({ title }) => title === indexPatternFromQuery);

@@ -25,7 +25,7 @@ import { fetchDocuments } from './fetch_documents';
 import { FetchStatus } from '../../types';
 import { DataMsg, RecordRawType, SavedSearchData } from '../services/discover_data_state_container';
 import { DiscoverServices } from '../../../build_services';
-import { fetchSql } from './fetch_sql';
+import { fetchTextBased } from './fetch_text_based';
 
 export interface FetchDeps {
   abortController: AbortController;
@@ -68,7 +68,7 @@ export function fetchAll(
     }
     const { sort, query } = appStateContainer.getState();
     const recordRawType = getRawRecordType(query);
-    const useSql = recordRawType === RecordRawType.PLAIN;
+    const useTextbased = recordRawType === RecordRawType.PLAIN;
 
     if (recordRawType === RecordRawType.DOCUMENT) {
       // Update the base searchSource, base for all child fetches
@@ -87,8 +87,8 @@ export function fetchAll(
 
     // Start fetching all required requests
     const response =
-      useSql && query
-        ? fetchSql(query, dataView, data, services.expressions, inspectorAdapters)
+      useTextbased && query
+        ? fetchTextBased(query, dataView, data, services.expressions, inspectorAdapters)
         : fetchDocuments(searchSource.createCopy(), fetchDeps);
 
     // Handle results of the individual queries and forward the results to the corresponding dataSubjects
