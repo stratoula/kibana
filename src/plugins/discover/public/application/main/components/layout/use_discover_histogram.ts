@@ -15,7 +15,8 @@ import {
   UnifiedHistogramState,
 } from '@kbn/unified-histogram-plugin/public';
 import { isEqual } from 'lodash';
-import { AggregateQuery, Query, isOfAggregateQueryType } from '@kbn/es-query';
+import type { Suggestion } from '@kbn/lens-plugin/public';
+import { AggregateQuery, Query } from '@kbn/es-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { distinctUntilChanged, map, Observable } from 'rxjs';
 import { useDiscoverServices } from '../../../../hooks/use_discover_services';
@@ -218,33 +219,15 @@ export const useDiscoverHistogram = ({
   }, [breakdownField, unifiedHistogram]);
 
   const columns = useAppStateSelector((state) => state.columns);
-  const documentState = useDataState(savedSearchData$.documents$);
 
   useEffect(() => {
-    const currentQueryIsTextBased = query && isOfAggregateQueryType(query);
-    const initialQueryIsTextBased =
-      prev.current.query && isOfAggregateQueryType(prev.current.query);
     // Update the columns only when the query changes
     if (!isEqual(columns, prev.current.columns) && !isEqual(query, prev.current.query)) {
-      // transitioning from dataview mode to text based mode should set the columns to []
-      if (currentQueryIsTextBased && !initialQueryIsTextBased) {
-        unifiedHistogram?.setColumns([]);
-      } else {
-        unifiedHistogram?.setColumns(columns);
-      }
+      unifiedHistogram?.setColumns(columns);
       prev.current.query = query;
       prev.current.columns = columns;
     }
   }, [columns, query, unifiedHistogram]);
-
-  useEffect(() => {
-    if (isPlainRecord) {
-      unifiedHistogram?.setTotalHits({
-        totalHitsResult: documentState.result?.length,
-        totalHitsStatus: documentState.fetchStatus.toString() as UnifiedHistogramFetchStatus,
-      });
-    }
-  }, [documentState.fetchStatus, documentState.result, isPlainRecord, unifiedHistogram]);
 
   /**
    * Total hits
@@ -327,6 +310,25 @@ export const useDiscoverHistogram = ({
     };
   }, [savedSearchFetch$, unifiedHistogram]);
 
+  // Reload the chart when the current suggestion changes
+  const [currentSuggestion, setCurrentSuggestion] = useState<Suggestion>();
+
+  useEffect(() => {
+    if (currentSuggestion) {
+      unifiedHistogram?.refetch();
+    }
+  }, [currentSuggestion, unifiedHistogram]);
+
+  useEffect(() => {
+    const subscription = createCurrentSuggestionObservable(unifiedHistogram?.state$)?.subscribe(
+      setCurrentSuggestion
+    );
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, [unifiedHistogram]);
+
   return { hideChart, setUnifiedHistogramApi };
 };
 
@@ -351,5 +353,12 @@ const createTotalHitsObservable = (state$?: Observable<UnifiedHistogramState>) =
   return state$?.pipe(
     map((state) => ({ status: state.totalHitsStatus, result: state.totalHitsResult })),
     distinctUntilChanged((prev, curr) => prev.status === curr.status && prev.result === curr.result)
+  );
+};
+
+const createCurrentSuggestionObservable = (state$?: Observable<UnifiedHistogramState>) => {
+  return state$?.pipe(
+    map((state) => state.currentSuggestion),
+    distinctUntilChanged(isEqual)
   );
 };

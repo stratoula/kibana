@@ -39,10 +39,6 @@ export interface UnifiedHistogramState {
    */
   currentSuggestion: Suggestion | undefined;
   /**
-   * The suggested Lens visualizations
-   */
-  allSuggestions: Suggestion[] | undefined;
-  /**
    * Whether or not the chart is hidden
    */
   chartHidden: boolean;
@@ -128,11 +124,6 @@ export interface UnifiedHistogramStateService {
   setCurrentSuggestion: (suggestion: Suggestion | undefined) => void;
 
   /**
-   * Sets all Lens suggestions
-   */
-  setAllSuggestions: (suggestions: Suggestion[] | undefined) => void;
-
-  /**
    * Sets columns
    */
   setColumns: (columns: string[] | undefined) => void;
@@ -193,7 +184,6 @@ export const createStateService = (
     columns: [],
     filters: [],
     currentSuggestion: undefined,
-    allSuggestions: undefined,
     lensRequestAdapter: undefined,
     query: services.data.query.queryString.getDefaultQuery(),
     requestAdapter: undefined,
@@ -245,10 +235,6 @@ export const createStateService = (
     },
     setColumns: (columns: string[] | undefined) => {
       updateState({ columns });
-    },
-
-    setAllSuggestions: (suggestions: Suggestion[] | undefined) => {
-      updateState({ allSuggestions: suggestions });
     },
 
     setTimeInterval: (timeInterval: string) => {
