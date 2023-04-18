@@ -198,7 +198,8 @@ export const getXyChartRenderer = ({
   reuseDomNode: true,
   render: async (domNode: Element, config: XYChartProps, handlers) => {
     const deps = await getStartDeps();
-
+    const executionContext = handlers.getExecutionContext();
+    const containerType = extractContainerType(executionContext);
     // Lazy loaded parts
     const [{ XYChartReportable }, { calculateMinInterval, getDataLayers }] = await Promise.all([
       import('../components/xy_chart'),
@@ -208,12 +209,27 @@ export const getXyChartRenderer = ({
     handlers.onDestroy(() => ReactDOM.unmountComponentAtNode(domNode));
     const onClickValue = (data: FilterEvent['data']) => {
       handlers.event({ name: 'filter', data });
+      if (deps.usageCollection && containerType) {
+        deps.usageCollection.reportUiCounter(containerType, METRIC_TYPE.COUNT, [
+          'create_filter_click_actions',
+        ]);
+      }
     };
     const onSelectRange = (data: BrushEvent['data']) => {
       handlers.event({ name: 'brush', data });
+      if (deps.usageCollection && containerType) {
+        deps.usageCollection.reportUiCounter(containerType, METRIC_TYPE.COUNT, [
+          'create_filter_brush_actions',
+        ]);
+      }
     };
     const onClickMultiValue = (data: MultiFilterEvent['data']) => {
       handlers.event({ name: 'multiFilter', data });
+      if (deps.usageCollection && containerType) {
+        deps.usageCollection.reportUiCounter(containerType, METRIC_TYPE.COUNT, [
+          'create_filter_tooltip_actions',
+        ]);
+      }
     };
 
     const layerCellValueActions = await getLayerCellValueActions(
@@ -222,8 +238,6 @@ export const getXyChartRenderer = ({
     );
 
     const renderComplete = () => {
-      const executionContext = handlers.getExecutionContext();
-      const containerType = extractContainerType(executionContext);
       const visualizationType = extractVisualizationType(executionContext);
 
       if (deps.usageCollection && containerType && visualizationType) {
