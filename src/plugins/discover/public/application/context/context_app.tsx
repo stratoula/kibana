@@ -29,6 +29,7 @@ import { SurrDocType } from './services/context';
 import { DocViewFilterFn } from '../../services/doc_views/doc_views_types';
 import { useDiscoverServices } from '../../hooks/use_discover_services';
 import { getRootBreadcrumbs } from '../../utils/breadcrumbs';
+import type { DataTableRecord } from '../../types';
 
 const ContextAppContentMemoized = memo(ContextAppContent);
 
@@ -36,9 +37,13 @@ export interface ContextAppProps {
   dataView: DataView;
   anchorId: string;
   referrer?: string;
+  /**
+   * Records fetched from text based query
+   */
+  textBasedHits?: DataTableRecord[];
 }
 
-export const ContextApp = ({ dataView, anchorId, referrer }: ContextAppProps) => {
+export const ContextApp = ({ dataView, anchorId, referrer, textBasedHits }: ContextAppProps) => {
   const services = useDiscoverServices();
   const { locator, uiSettings, capabilities, dataViews, navigation, filterManager, core } =
     services;
@@ -93,6 +98,7 @@ export const ContextApp = ({ dataView, anchorId, referrer }: ContextAppProps) =>
       dataView,
       appState,
       useNewFieldsApi,
+      textBasedHits,
     });
 
   /**

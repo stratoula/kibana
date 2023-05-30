@@ -12,6 +12,7 @@ import type { GlobalQueryStateFromUrl } from '@kbn/data-plugin/public';
 import type { LocatorDefinition, LocatorPublic } from '@kbn/share-plugin/public';
 import { setStateToKbnUrl } from '@kbn/kibana-utils-plugin/public';
 import type { DataViewSpec } from '@kbn/data-views-plugin/public';
+import type { DataTableRecord } from '../../../types';
 export const DISCOVER_CONTEXT_APP_LOCATOR = 'DISCOVER_CONTEXT_APP_LOCATOR';
 
 export interface DiscoverContextAppLocatorParams extends SerializableRecord {
@@ -20,6 +21,7 @@ export interface DiscoverContextAppLocatorParams extends SerializableRecord {
   columns?: string[];
   filters?: Filter[];
   referrer: string; // discover main view url
+  textBasedHitsJson?: string;
 }
 
 export type DiscoverContextAppLocator = LocatorPublic<DiscoverContextAppLocatorParams>;
@@ -31,6 +33,7 @@ export interface DiscoverContextAppLocatorDependencies {
 export interface ContextHistoryLocationState {
   referrer: string;
   dataViewSpec?: DataViewSpec;
+  textBasedHits?: DataTableRecord[];
 }
 
 export class DiscoverContextAppLocatorDefinition
@@ -42,7 +45,10 @@ export class DiscoverContextAppLocatorDefinition
 
   public readonly getLocation = async (params: DiscoverContextAppLocatorParams) => {
     const useHash = this.deps.useHash;
-    const { index, rowId, columns, filters, referrer } = params;
+    const { index, rowId, columns, filters, referrer, textBasedHitsJson } = params;
+    const textBasedHits: DataTableRecord[] = textBasedHitsJson
+      ? JSON.parse(textBasedHitsJson)
+      : undefined;
 
     const appState: { filters?: Filter[]; columns?: string[] } = {};
     const queryState: GlobalQueryStateFromUrl = {};
@@ -60,6 +66,10 @@ export class DiscoverContextAppLocatorDefinition
       dataViewId = index.id!;
     } else {
       dataViewId = index;
+    }
+
+    if (textBasedHits) {
+      state.textBasedHits = textBasedHits;
     }
 
     let path = `#/context/${dataViewId}/${rowId}`;

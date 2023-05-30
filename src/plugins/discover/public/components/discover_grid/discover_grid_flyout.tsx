@@ -26,7 +26,7 @@ import {
   keys,
 } from '@elastic/eui';
 import type { Filter, Query, AggregateQuery } from '@kbn/es-query';
-import { isOfAggregateQueryType } from '@kbn/es-query';
+import { isOfAggregateQueryType, getIndexPatternFromSQLQuery } from '@kbn/es-query';
 import { DocViewer } from '../../services/doc_views/components/doc_viewer/doc_viewer';
 import { DocViewFilterFn } from '../../services/doc_views/doc_views_types';
 import { useNavigationProps } from '../../hooks/use_navigation_props';
@@ -71,7 +71,7 @@ export function DiscoverGridFlyout({
   setExpandedDoc,
 }: DiscoverGridFlyoutProps) {
   const services = useDiscoverServices();
-  const isPlainRecord = query && isOfAggregateQueryType(query);
+  const isPlainRecord = query && isOfAggregateQueryType(query) && 'sql' in query;
   // Get actual hit with updated highlighted searches
   const actualHit = useMemo(() => hits?.find(({ id }) => id === hit?.id) || hit, [hit, hits]);
   const pageCount = useMemo<number>(() => (hits ? hits.length : 0), [hits]);
@@ -105,7 +105,15 @@ export function DiscoverGridFlyout({
   );
 
   const { singleDocHref, contextViewHref, onOpenSingleDoc, onOpenContextView } = useNavigationProps(
-    { dataView, rowIndex: hit.raw._index, rowId: hit.raw._id, columns, filters, savedSearchId }
+    {
+      dataView,
+      rowIndex: isPlainRecord ? getIndexPatternFromSQLQuery(query.sql) : hit.raw._index,
+      rowId: isPlainRecord ? hit.id : hit.raw._id,
+      columns,
+      filters,
+      savedSearchId,
+      textBasedHits: isPlainRecord ? hits : undefined,
+    }
   );
 
   return (

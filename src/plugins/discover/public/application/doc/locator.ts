@@ -9,7 +9,7 @@
 import type { SerializableRecord } from '@kbn/utility-types';
 import type { LocatorDefinition, LocatorPublic } from '@kbn/share-plugin/public';
 import { DataViewSpec } from '@kbn/data-views-plugin/public';
-
+import type { DataTableRecord } from '../../types';
 export const DISCOVER_SINGLE_DOC_LOCATOR = 'DISCOVER_SINGLE_DOC_LOCATOR';
 
 export interface DiscoverSingleDocLocatorParams extends SerializableRecord {
@@ -17,6 +17,7 @@ export interface DiscoverSingleDocLocatorParams extends SerializableRecord {
   rowId: string;
   rowIndex: string;
   referrer: string; // discover main view url
+  textBasedHitsJson?: string;
 }
 
 export type DiscoverSingleDocLocator = LocatorPublic<DiscoverSingleDocLocatorParams>;
@@ -24,6 +25,7 @@ export type DiscoverSingleDocLocator = LocatorPublic<DiscoverSingleDocLocatorPar
 export interface DocHistoryLocationState {
   referrer: string;
   dataViewSpec?: DataViewSpec;
+  textBasedHits?: DataTableRecord[];
 }
 
 export class DiscoverSingleDocLocatorDefinition
@@ -34,7 +36,10 @@ export class DiscoverSingleDocLocatorDefinition
   constructor() {}
 
   public readonly getLocation = async (params: DiscoverSingleDocLocatorParams) => {
-    const { index, rowId, rowIndex, referrer } = params;
+    const { index, rowId, rowIndex, referrer, textBasedHitsJson } = params;
+    const textBasedHits: DataTableRecord[] = textBasedHitsJson
+      ? JSON.parse(textBasedHitsJson)
+      : undefined;
 
     let dataViewId;
     const state: DocHistoryLocationState = { referrer };
@@ -43,6 +48,10 @@ export class DiscoverSingleDocLocatorDefinition
       dataViewId = index.id!;
     } else {
       dataViewId = index;
+    }
+
+    if (textBasedHits) {
+      state.textBasedHits = textBasedHits;
     }
 
     const path = `#/doc/${dataViewId}/${rowIndex}?id=${rowId}`;

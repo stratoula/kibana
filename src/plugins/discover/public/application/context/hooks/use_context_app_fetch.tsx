@@ -33,6 +33,7 @@ export interface ContextAppFetchProps {
   dataView: DataView;
   appState: AppState;
   useNewFieldsApi: boolean;
+  textBasedHits?: DataTableRecord[];
 }
 
 export function useContextAppFetch({
@@ -40,6 +41,7 @@ export function useContextAppFetch({
   dataView,
   appState,
   useNewFieldsApi,
+  textBasedHits,
 }: ContextAppFetchProps) {
   const {
     uiSettings: config,
@@ -95,9 +97,19 @@ export function useContextAppFetch({
         { [dataView.timeFieldName!]: SortDirection.desc },
         { [tieBreakerField]: SortDirection.desc },
       ];
-      const anchor = await fetchAnchor(anchorId, dataView, searchSource, sort, useNewFieldsApi);
-      setState({ anchor, anchorStatus: { value: LoadingStatus.LOADED } });
-      return anchor;
+      if (textBasedHits) {
+        const selectedHit = textBasedHits?.find((r) => r.id === anchorId);
+        if (selectedHit) {
+          const anchor = selectedHit;
+          anchor.isAnchor = true;
+          setState({ anchor, anchorStatus: { value: LoadingStatus.LOADED } });
+          return anchor;
+        }
+      } else {
+        const anchor = await fetchAnchor(anchorId, dataView, searchSource, sort, useNewFieldsApi);
+        setState({ anchor, anchorStatus: { value: LoadingStatus.LOADED } });
+        return anchor;
+      }
     } catch (error) {
       setState(createError('anchorStatus', FailureReason.UNKNOWN, error));
       toastNotifications.addDanger({
@@ -109,11 +121,12 @@ export function useContextAppFetch({
     tieBreakerField,
     setState,
     toastNotifications,
+    theme$,
     dataView,
+    textBasedHits,
     anchorId,
     searchSource,
     useNewFieldsApi,
-    theme$,
   ]);
 
   const fetchSurroundingRows = useCallback(

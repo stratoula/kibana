@@ -12,6 +12,7 @@ import type { DataView } from '@kbn/data-views-plugin/public';
 import { useHistory } from 'react-router-dom';
 import { DataPublicPluginStart, FilterManager } from '@kbn/data-plugin/public';
 import { useDiscoverServices } from './use_discover_services';
+import type { DataTableRecord } from '../types';
 
 export interface UseNavigationProps {
   dataView: DataView;
@@ -21,6 +22,7 @@ export interface UseNavigationProps {
   savedSearchId?: string;
   // provided by embeddable only
   filters?: Filter[];
+  textBasedHits?: DataTableRecord[];
 }
 
 const getStateParams = ({
@@ -70,6 +72,7 @@ export const useNavigationProps = ({
   columns,
   savedSearchId,
   filters,
+  textBasedHits,
 }: UseNavigationProps) => {
   const isEmbeddableView = !useHistory();
   const services = useDiscoverServices();
@@ -144,13 +147,26 @@ export const useNavigationProps = ({
       }
       event.preventDefault();
       const dataViewId = typeof index === 'object' ? index.id : index;
-      services.locator
-        .getUrl({ dataViewId, ...buildParams() })
-        .then((referrer) =>
-          services.singleDocLocator.navigate({ index, rowIndex, rowId, referrer })
-        );
+      const params = buildParams();
+      services.locator.getUrl({ dataViewId, ...params }).then((referrer) => {
+        services.singleDocLocator.navigate({
+          index,
+          rowIndex,
+          rowId,
+          referrer,
+          textBasedHitsJson: textBasedHits ? JSON.stringify(textBasedHits) : undefined,
+        });
+      });
     },
-    [buildParams, index, rowId, rowIndex, services.locator, services.singleDocLocator]
+    [
+      buildParams,
+      index,
+      rowId,
+      rowIndex,
+      services.locator,
+      services.singleDocLocator,
+      textBasedHits,
+    ]
   );
 
   const onOpenContextView: MouseEventHandler = useCallback(
@@ -168,10 +184,11 @@ export const useNavigationProps = ({
           columns: params.columns,
           filters: params.filters?.map(disableFilter),
           referrer,
+          textBasedHitsJson: textBasedHits ? JSON.stringify(textBasedHits) : undefined,
         })
       );
     },
-    [buildParams, index, rowId, services.contextLocator, services.locator]
+    [buildParams, index, rowId, services.contextLocator, services.locator, textBasedHits]
   );
 
   return {

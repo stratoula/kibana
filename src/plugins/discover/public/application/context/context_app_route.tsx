@@ -77,5 +77,12 @@ export function ContextAppRoute() {
     return <LoadingIndicator />;
   }
 
-  return <ContextApp anchorId={anchorId} dataView={dataView} referrer={locationState?.referrer} />;
+  return (
+    <ContextApp
+      anchorId={anchorId}
+      dataView={dataView}
+      referrer={locationState?.referrer}
+      textBasedHits={locationState?.textBasedHits}
+    />
+  );
 }
