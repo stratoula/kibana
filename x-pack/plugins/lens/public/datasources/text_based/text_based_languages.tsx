@@ -43,6 +43,7 @@ import { FieldSelect } from './field_select';
 import type { Datasource, IndexPatternMap } from '../../types';
 import { LayerPanel } from './layerpanel';
 import { getUniqueLabelGenerator, nonNullable } from '../../utils';
+// import { fetchDataFromAggregateQuery } from './fetch_data_from_aggregate_query';
 
 function getLayerReferenceName(layerId: string) {
   return `textBasedLanguages-datasource-layer-${layerId}`;
@@ -111,7 +112,7 @@ export function getTextBasedDatasource({
     if (context && 'dataViewSpec' in context && context.dataViewSpec.title && context.query) {
       const newLayerId = generateId();
       const indexPattern = indexPatterns[indexPatternId];
-
+      // const tablePromise = fetchDataFromAggregateQuery(context.query, data, expressions);
       const contextualFields = context.contextualFields;
       const newColumns = contextualFields?.map((c) => {
         let field = indexPattern?.getFieldByName(c);

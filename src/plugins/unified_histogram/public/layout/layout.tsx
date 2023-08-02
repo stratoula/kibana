@@ -199,6 +199,7 @@ export const UnifiedHistogramLayout = ({
     originalSuggestion,
     isPlainRecord,
     columns,
+    timeRange,
     lensSuggestionsApi,
     onSuggestionChange,
   });

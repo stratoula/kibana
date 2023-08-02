@@ -22,9 +22,9 @@ interface TextBasedLanguagesErrorResponse {
 
 export function fetchDataFromAggregateQuery(
   query: Query | AggregateQuery,
-  dataView: DataView,
   data: DataPublicPluginStart,
   expressions: ExpressionsStart,
+  dataView?: DataView,
   filters?: Filter[],
   inputQuery?: Query
 ) {

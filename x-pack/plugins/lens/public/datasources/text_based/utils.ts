@@ -105,7 +105,7 @@ export async function getStateFromAggregateQuery(
       ];
     }
     timeFieldName = dataView.timeFieldName;
-    const table = await fetchDataFromAggregateQuery(query, dataView, data, expressions);
+    const table = await fetchDataFromAggregateQuery(query, data, expressions, dataView);
     columnsFromQuery = table?.columns ?? [];
     allColumns = getAllColumns(state.layers[newLayerId].allColumns, columnsFromQuery);
   } catch (e) {

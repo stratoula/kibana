@@ -7,7 +7,7 @@
  */
 
 import { DataView } from '@kbn/data-views-plugin/common';
-import { AggregateQuery, isOfAggregateQueryType, Query } from '@kbn/es-query';
+import { AggregateQuery, isOfAggregateQueryType, Query, TimeRange } from '@kbn/es-query';
 import { LensSuggestionsApi, Suggestion } from '@kbn/lens-plugin/public';
 import { isEqual } from 'lodash';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -18,6 +18,7 @@ export const useLensSuggestions = ({
   originalSuggestion,
   isPlainRecord,
   columns,
+  timeRange,
   lensSuggestionsApi,
   onSuggestionChange,
 }: {
@@ -26,6 +27,7 @@ export const useLensSuggestions = ({
   originalSuggestion?: Suggestion;
   isPlainRecord?: boolean;
   columns?: string[];
+  timeRange?: TimeRange;
   lensSuggestionsApi: LensSuggestionsApi;
   onSuggestionChange?: (suggestion: Suggestion | undefined) => void;
 }) => {
@@ -45,8 +47,34 @@ export const useLensSuggestions = ({
   }, [columns, dataView, isPlainRecord, lensSuggestionsApi, query]);
 
   const [allSuggestions, setAllSuggestions] = useState(suggestions.allSuggestions);
-  const currentSuggestion = originalSuggestion ?? suggestions.firstSuggestion;
+  let currentSuggestion = originalSuggestion ?? suggestions.firstSuggestion;
   const suggestionDeps = useRef(getSuggestionDeps({ dataView, query, columns }));
+
+  if (
+    !currentSuggestion &&
+    dataView.isTimeBased() &&
+    query &&
+    isOfAggregateQueryType(query) &&
+    timeRange
+  ) {
+    const histogramQuery = `${query.esql} | eval uniqueName = 1
+    | EVAL bucket=AUTO_BUCKET(${dataView.timeFieldName}, 1000, "${timeRange.from}", "${timeRange.to}") | stats countAll = count(uniqueName) by bucket`;
+
+    // const histogramQuery = `${query.esql} | eval uniqueName = 1 | stats countAll = count(uniqueName) by ${dataView.timeFieldName}`;
+
+    const context = {
+      dataViewSpec: dataView?.toSpec(),
+      fieldName: '',
+      contextualFields: ['bucket', 'countAll'],
+      query: {
+        esql: histogramQuery,
+      },
+    };
+    const sug = isPlainRecord ? lensSuggestionsApi(context, dataView, ['lnsDatatable']) ?? [] : [];
+    if (sug.length) {
+      currentSuggestion = sug[0];
+    }
+  }
 
   useEffect(() => {
     const newSuggestionsDeps = getSuggestionDeps({ dataView, query, columns });
@@ -69,7 +97,7 @@ export const useLensSuggestions = ({
   return {
     allSuggestions,
     currentSuggestion,
-    suggestionUnsupported: !currentSuggestion && !dataView.isTimeBased(),
+    suggestionUnsupported: isPlainRecord && !currentSuggestion,
   };
 };
 
