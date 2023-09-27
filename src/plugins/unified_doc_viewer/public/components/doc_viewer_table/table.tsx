@@ -24,6 +24,7 @@ import {
   EuiSelectableMessage,
   EuiI18n,
   useIsWithinBreakpoints,
+  EuiSwitch,
 } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
 import { FormattedMessage } from '@kbn/i18n-react';
@@ -122,6 +123,7 @@ export const DocViewerTable = ({
   const [pinnedFields, setPinnedFields] = useState<string[]>(
     getPinnedFields(currentDataViewId, storage)
   );
+  const [emptyValuesAreHidden, setEmptyValuesAreHidden] = useState(false);
 
   const flattened = hit.flattened;
   const shouldShowFieldHandler = useMemo(
@@ -244,8 +246,11 @@ export const DocViewerTable = ({
           const fieldMapping = mapping(curFieldName);
           const displayName = fieldMapping?.displayName ?? curFieldName;
           if (displayName.toLowerCase().includes(searchText.toLowerCase())) {
+            const rawValue = flattened[curFieldName];
             // filter only unpinned fields
-            acc.restItems.push(fieldToItem(curFieldName));
+            if (!emptyValuesAreHidden || rawValue) {
+              acc.restItems.push(fieldToItem(curFieldName));
+            }
           }
         }
 
@@ -402,6 +407,19 @@ export const DocViewerTable = ({
           placeholder={searchPlaceholder}
           value={searchText}
         />
+      </EuiFlexItem>
+
+      <EuiFlexItem grow={false}>
+        <EuiSpacer size="s" />
+        <EuiFlexGroup alignItems="flexEnd" direction="column">
+          <EuiSwitch
+            label="Hide empty values"
+            checked={emptyValuesAreHidden}
+            onChange={(e) => setEmptyValuesAreHidden(e.target.checked)}
+            compressed
+          />
+        </EuiFlexGroup>
+        <EuiSpacer size="s" />
       </EuiFlexItem>
 
       {rowElements.length === 0 ? (
