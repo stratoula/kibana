@@ -323,6 +323,12 @@ export function App({
   const runSave = useCallback(
     (saveProps: SaveProps, options: { saveToLibrary: boolean }) => {
       dispatch(applyChanges());
+      if (visualization && visualization.activeId) {
+        // console.dir(
+        //   visualizationMap[visualization.activeId]?.getColorMapping?.(visualization.state)
+        // );
+        const activeVisualization = visualizationMap[visualization.activeId];
+      }
       return runSaveLensVisualization(
         {
           lastKnownDoc,
@@ -356,6 +362,8 @@ export function App({
     },
     [
       dispatch,
+      visualizationMap,
+      visualization.activeId,
       lastKnownDoc,
       getIsByValueMode,
       savedObjectsTagging,

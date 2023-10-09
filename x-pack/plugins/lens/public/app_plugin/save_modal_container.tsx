@@ -266,6 +266,7 @@ export const runSaveLensVisualization = async (
       }
     });
   }
+  console.dir(docToSave);
 
   const originalInput = saveProps.newCopyOnSave ? undefined : initialInput;
   const originalSavedObjectId = (originalInput as LensByReferenceInput)?.savedObjectId;

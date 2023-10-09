@@ -1128,6 +1128,9 @@ export interface Visualization<T = unknown, P = T, ExtraAppendLayerArg = unknown
   /** returns the type string of the given layer */
   getLayerType: (layerId: string, state?: T) => LayerType | undefined;
 
+  /** returns the color mapping per layer */
+  getColorMapping?: (state?: T) => Record<string, ColorMapping.Config> | undefined;
+
   /**
    * Get the layers this one should be linked to (currently that means just keeping the data view in sync)
    */

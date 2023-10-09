@@ -16,7 +16,12 @@ import {
   buildExpressionFunction,
   ExpressionFunctionTheme,
 } from '@kbn/expressions-plugin/common';
-import { PaletteRegistry, DEFAULT_COLOR_MAPPING_CONFIG, getColorsFromMapping } from '@kbn/coloring';
+import {
+  PaletteRegistry,
+  DEFAULT_COLOR_MAPPING_CONFIG,
+  getColorsFromMapping,
+  type ColorMapping,
+} from '@kbn/coloring';
 import { IconChartTagcloud } from '@kbn/chart-icons';
 import { SystemPaletteExpressionFunctionDefinition } from '@kbn/charts-plugin/common';
 import useObservable from 'react-use/lib/useObservable';
@@ -98,6 +103,18 @@ export const getTagcloudVisualization = ({
       : state.palette
       ? { type: 'legacyPalette', value: state.palette }
       : undefined;
+  },
+
+  getColorMapping: (state) => {
+    if (!state || !state.colorMapping) {
+      return undefined;
+    }
+
+    const colorMappingPerLayer: Record<string, ColorMapping.Config> = {
+      [state.layerId]: state.colorMapping,
+    };
+
+    return colorMappingPerLayer;
   },
 
   triggers: [VIS_EVENT_TO_TRIGGER.filter],

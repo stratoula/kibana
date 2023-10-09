@@ -189,6 +189,21 @@ export const getPieVisualization = ({
       : undefined;
   },
 
+  getColorMapping: (state) => {
+    if (!state) {
+      return undefined;
+    }
+
+    const layers = state.layers;
+    const colorMappingPerLayer: Record<string, ColorMapping.Config> = {};
+    layers.forEach((layer) => {
+      if (layer.colorMapping) {
+        colorMappingPerLayer[layer.layerId] = layer.colorMapping;
+      }
+    });
+
+    return colorMappingPerLayer;
+  },
   getSuggestions: suggestions,
 
   getConfiguration({ state, frame, layerId }) {

@@ -9,7 +9,7 @@ import React from 'react';
 import { Position } from '@elastic/charts';
 import { FormattedMessage } from '@kbn/i18n-react';
 import { i18n } from '@kbn/i18n';
-import type { PaletteRegistry } from '@kbn/coloring';
+import type { PaletteRegistry, ColorMapping } from '@kbn/coloring';
 import { IconChartBarReferenceLine, IconChartBarAnnotations } from '@kbn/chart-icons';
 import { FieldFormatsStart } from '@kbn/field-formats-plugin/public';
 import { CoreStart, SavedObjectReference, ThemeServiceStart } from '@kbn/core/public';
@@ -496,6 +496,22 @@ export const getXyVisualization = ({
       : firstDataLayer?.palette
       ? { type: 'legacyPalette', value: firstDataLayer.palette }
       : undefined;
+  },
+
+  getColorMapping: (state) => {
+    if (!state || state.layers.length === 0) {
+      return undefined;
+    }
+
+    const dataLayers = getDataLayers(state.layers);
+    const colorMappingPerLayer: Record<string, ColorMapping.Config> = {};
+    dataLayers.forEach((layer) => {
+      if (layer.colorMapping) {
+        colorMappingPerLayer[layer.layerId] = layer.colorMapping;
+      }
+    });
+
+    return colorMappingPerLayer;
   },
 
   getDropProps(dropProps) {
