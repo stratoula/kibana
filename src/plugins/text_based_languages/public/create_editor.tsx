@@ -11,6 +11,7 @@ import useAsync from 'react-use/lib/useAsync';
 import { KibanaContextProvider } from '@kbn/kibana-react-plugin/public';
 import { TextBasedLanguagesEditorProps } from '@kbn/text-based-editor';
 import { untilPluginStartServicesReady } from './kibana_services';
+// import { useAbortableAsync } from './hooks/use_abortable_async';
 
 export const TextBasedLangEditor = (props: TextBasedLanguagesEditorProps) => {
   const { loading, value } = useAsync(() => {
@@ -21,8 +22,17 @@ export const TextBasedLangEditor = (props: TextBasedLanguagesEditorProps) => {
 
   const TextBasedLanguagesEditor = value?.[1]?.default;
   const deps = value?.[0];
+  // const observabilityAIAssistantService = deps?.observabilityAIAssistant?.service;
+
+  // const chatService = useAbortableAsync(
+  //   ({ signal }) => {
+  //     return observabilityAIAssistantService?.start({ signal });
+  //   },
+  //   [observabilityAIAssistantService]
+  // );
 
   if (loading || !deps || !TextBasedLanguagesEditor) return <EuiLoadingSpinner />;
+  // console.dir(chatService.value);
 
   return (
     <KibanaContextProvider
