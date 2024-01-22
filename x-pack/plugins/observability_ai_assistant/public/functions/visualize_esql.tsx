@@ -26,7 +26,6 @@ import type {
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import useAsync from 'react-use/lib/useAsync';
-import type { VisualizeESQLFunctionArguments } from '../../common/functions/visualize_esql';
 import type {
   ObservabilityAIAssistantPluginStartDependencies,
   ObservabilityAIAssistantService,
@@ -41,6 +40,11 @@ import {
 
 interface VisualizeLensResponse {
   content: DatatableColumn[];
+}
+
+interface VisualizeESQLFunctionArguments {
+  [x: string]: unknown;
+  query: string;
 }
 
 interface VisualizeESQLProps {

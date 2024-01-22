@@ -11,6 +11,8 @@ import pLimit from 'p-limit';
 import Path from 'path';
 import { lastValueFrom, Observable } from 'rxjs';
 import { promisify } from 'util';
+import { esFieldTypeToKibanaFieldType } from '@kbn/field-types';
+import type { ESQLSearchReponse } from '@kbn/es-types';
 import type { FunctionRegistrationParameters } from '..';
 import {
   CreateChatCompletionResponseChunk,
@@ -67,6 +69,47 @@ export function registerEsqlFunction({
   registerFunction,
   resources,
 }: FunctionRegistrationParameters) {
+  registerFunction(
+    {
+      name: 'visualize_query',
+      description: 'Use this function to visualize charts for ES|QL queries.',
+      descriptionForUser: 'Use this function to visualize charts for ES|QL queries.',
+      parameters: {
+        type: 'object',
+        additionalProperties: true,
+        properties: {
+          query: {
+            type: 'string',
+          },
+        },
+        required: ['query'],
+      } as const,
+      contexts: ['core'],
+    },
+    async ({ arguments: { query }, connectorId, messages }, signal) => {
+      // With limit 0 I get only the columns, it is much more performant
+      const performantQuery = `${query} | limit 0`;
+      const coreContext = await resources.context.core;
+
+      const response = (await (
+        await coreContext
+      ).elasticsearch.client.asCurrentUser.transport.request({
+        method: 'POST',
+        path: '_query',
+        body: {
+          query: performantQuery,
+        },
+      })) as ESQLSearchReponse;
+      const columns =
+        response.columns?.map(({ name, type }) => ({
+          id: name,
+          name,
+          meta: { type: esFieldTypeToKibanaFieldType(type) },
+        })) ?? [];
+      return { content: columns };
+    }
+  );
+
   registerFunction(
     {
       name: 'execute_query',
@@ -140,12 +183,14 @@ export function registerEsqlFunction({
             Extract data? Request \`DISSECT\` AND \`GROK\`.
             Convert a column based on a set of conditionals? Request \`EVAL\` and \`CASE\`.
 
-            Examples for determining whether the user wants to execute a query:
+            Examples for determining whether the user wants to visualize a query:
             - "Show me the avg of x"
             - "Give me the results of y"
             - "Display the sum of z"
+            - "I want to visualize ..."
+            - I want a chart ..."
 
-            Examples for determining whether the user does not want to execute a query:
+            Examples for determining whether the user does not want to visualize a query:
             - "I want a query that ..."
             - "... Just show me the query"
             - "Create a query that ..."`
@@ -157,7 +202,7 @@ export function registerEsqlFunction({
               name: 'classify_esql',
               description: `Use this function to determine:
               - what ES|QL functions and commands are candidates for answering the user's question
-              - whether the user has requested a query, and if so, it they want it to be executed, or just shown.
+              - whether the user has requested a query, and if so, it they want it to be visualized, or just shown.
               `,
               parameters: {
                 type: 'object',
@@ -334,7 +379,7 @@ export function registerEsqlFunction({
                     {
                       delta: {
                         function_call: {
-                          name: 'execute_query',
+                          name: 'visualize_query',
                           arguments: JSON.stringify({ query: esqlQuery }),
                         },
                       },
