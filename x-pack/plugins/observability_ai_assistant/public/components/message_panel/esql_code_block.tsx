@@ -54,13 +54,16 @@ export function EsqlCodeBlock({
         </EuiFlexItem>
         <EuiFlexItem>
           <EuiFlexGroup direction="row" gutterSize="s">
-            <EuiFlexItem grow={false}>
+            {/* <EuiFlexItem grow={false}>
               <EuiButtonEmpty
                 data-test-subj="observabilityAiAssistantEsqlCodeBlockRunThisQueryButton"
                 size="xs"
                 iconType="play"
                 onClick={() =>
-                  onActionClick({ type: ChatActionClickType.executeEsqlQuery, query: value })
+                  onActionClick({
+                    type: ChatActionClickType.executeEsqlQuery,
+                    query: value,
+                  })
                 }
                 disabled={actionsDisabled}
               >
@@ -68,7 +71,7 @@ export function EsqlCodeBlock({
                   defaultMessage: 'Run this query',
                 })}
               </EuiButtonEmpty>
-            </EuiFlexItem>
+            </EuiFlexItem> */}
             <EuiFlexItem grow={false}>
               <EuiButtonEmpty
                 data-test-subj="observabilityAiAssistantEsqlCodeBlockVisualizeThisQueryButton"

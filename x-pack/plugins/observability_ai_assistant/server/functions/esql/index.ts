@@ -72,7 +72,8 @@ export function registerEsqlFunction({
   registerFunction(
     {
       name: 'visualize_query',
-      description: 'Use this function to visualize charts for ES|QL queries.',
+      description:
+        'Use this function to visualize charts for ES|QL queries. Do NOT run the lens function and do not try to visualize it on your own',
       descriptionForUser: 'Use this function to visualize charts for ES|QL queries.',
       parameters: {
         type: 'object',
@@ -110,37 +111,37 @@ export function registerEsqlFunction({
     }
   );
 
-  registerFunction(
-    {
-      name: 'execute_query',
-      contexts: ['core'],
-      visibility: FunctionVisibility.User,
-      description: 'Execute an ES|QL query.',
-      parameters: {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          query: {
-            type: 'string',
-          },
-        },
-        required: ['query'],
-      } as const,
-    },
-    async ({ arguments: { query } }) => {
-      const response = await (
-        await resources.context.core
-      ).elasticsearch.client.asCurrentUser.transport.request({
-        method: 'POST',
-        path: '_query',
-        body: {
-          query,
-        },
-      });
+  // registerFunction(
+  //   {
+  //     name: 'execute_query',
+  //     contexts: ['core'],
+  //     visibility: FunctionVisibility.User,
+  //     description: 'Execute an ES|QL query.',
+  //     parameters: {
+  //       type: 'object',
+  //       additionalProperties: false,
+  //       properties: {
+  //         query: {
+  //           type: 'string',
+  //         },
+  //       },
+  //       required: ['query'],
+  //     } as const,
+  //   },
+  //   async ({ arguments: { query } }) => {
+  //     const response = await (
+  //       await resources.context.core
+  //     ).elasticsearch.client.asCurrentUser.transport.request({
+  //       method: 'POST',
+  //       path: '_query',
+  //       body: {
+  //         query,
+  //       },
+  //     });
 
-      return { content: response };
-    }
-  );
+  //     return { content: response };
+  //   }
+  // );
 
   registerFunction(
     {
@@ -224,7 +225,7 @@ export function registerEsqlFunction({
                   execute: {
                     type: 'boolean',
                     description:
-                      'Whether the user wants to execute a query (true) or just wants the query to be displayed (false)',
+                      'Whether the user wants to visualize a query (true) or just wants the query to be displayed (false)',
                   },
                 },
                 required: ['commands', 'functions', 'execute'],
