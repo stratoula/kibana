@@ -125,38 +125,6 @@ export function registerEsqlFunction({
     }
   );
 
-  // registerFunction(
-  //   {
-  //     name: 'execute_query',
-  //     contexts: ['core'],
-  //     visibility: FunctionVisibility.User,
-  //     description: 'Execute an ES|QL query.',
-  //     parameters: {
-  //       type: 'object',
-  //       additionalProperties: false,
-  //       properties: {
-  //         query: {
-  //           type: 'string',
-  //         },
-  //       },
-  //       required: ['query'],
-  //     } as const,
-  //   },
-  //   async ({ arguments: { query } }) => {
-  //     const response = await (
-  //       await resources.context.core
-  //     ).elasticsearch.client.asCurrentUser.transport.request({
-  //       method: 'POST',
-  //       path: '_query',
-  //       body: {
-  //         query,
-  //       },
-  //     });
-
-  //     return { content: response };
-  //   }
-  // );
-
   registerFunction(
     {
       name: 'esql',
