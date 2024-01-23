@@ -45,6 +45,7 @@ interface VisualizeLensResponse {
 interface VisualizeESQLFunctionArguments {
   [x: string]: unknown;
   query: string;
+  chartType?: string;
 }
 
 interface VisualizeESQLProps {
@@ -70,6 +71,8 @@ interface VisualizeESQLProps {
    * if this is addressed https://github.com/elastic/eui/issues/7443
    */
   chatFlyoutSecondSlotHandler?: ChatFlyoutSecondSlotHandler;
+  /** User's preferation chart type as it comes from the model */
+  preferredChartType?: string;
 }
 
 function generateId() {
@@ -85,6 +88,7 @@ export function VisualizeESQL({
   onActionClick,
   initialInput,
   chatFlyoutSecondSlotHandler,
+  preferredChartType,
 }: VisualizeESQLProps) {
   // fetch the pattern from the query
   const indexPattern = getIndexPatternFromESQLQuery(query);
@@ -137,14 +141,24 @@ export function VisualizeESQL({
 
       const chartSuggestions = lensHelpersAsync.value.suggestions(context, dataViewAsync.value);
       if (chartSuggestions?.length) {
-        const [firstSuggestion] = chartSuggestions;
+        let [suggestion] = chartSuggestions;
+
+        if (chartSuggestions.length > 1 && preferredChartType) {
+          const suggestionFromModel = chartSuggestions.find(
+            (s) =>
+              s.title.includes(preferredChartType) || s.visualizationId.includes(preferredChartType)
+          );
+          if (suggestionFromModel) {
+            suggestion = suggestionFromModel;
+          }
+        }
 
         const attrs = getLensAttributesFromSuggestion({
           filters: [],
           query: {
             esql: query,
           },
-          suggestion: firstSuggestion,
+          suggestion,
           dataView: dataViewAsync.value,
         }) as TypedLensByValueInput['attributes'];
 
@@ -155,7 +169,7 @@ export function VisualizeESQL({
         setLensInput(lensEmbeddableInput);
       }
     }
-  }, [columns, dataViewAsync.value, lensHelpersAsync.value, lensInput, query]);
+  }, [columns, dataViewAsync.value, lensHelpersAsync.value, lensInput, preferredChartType, query]);
 
   // trigger options to open the inline editing flyout correctly
   const triggerOptions: InlineEditLensEmbeddableContext | undefined = useMemo(() => {
@@ -290,7 +304,7 @@ export function registerVisualizeQueryRenderFunction({
   registerRenderFunction(
     'visualize_query',
     ({
-      arguments: { query, newInput },
+      arguments: { query, newInput, chartType },
       response,
       onActionClick,
       chatFlyoutSecondSlotHandler,
@@ -306,6 +320,7 @@ export function registerVisualizeQueryRenderFunction({
           onActionClick={onActionClick}
           initialInput={newInput}
           chatFlyoutSecondSlotHandler={chatFlyoutSecondSlotHandler}
+          preferredChartType={chartType}
         />
       );
     }

@@ -23,6 +23,17 @@ import { concatenateOpenAiChunks } from '../../../common/utils/concatenate_opena
 import { processOpenAiStream } from '../../../common/utils/process_openai_stream';
 import { streamIntoObservable } from '../../service/util/stream_into_observable';
 
+enum ChartType {
+  XY = 'XY',
+  Bar = 'Bar',
+  Line = 'Line',
+  Donut = 'Donut',
+  Heatmap = 'Heat map',
+  Treemap = 'Treemap',
+  Tagcloud = 'Tag cloud',
+  Waffle = 'Waffle',
+}
+
 const readFile = promisify(Fs.readFile);
 const readdir = promisify(Fs.readdir);
 
@@ -73,13 +84,16 @@ export function registerEsqlFunction({
     {
       name: 'visualize_query',
       description:
-        'Use this function to visualize charts for ES|QL queries. Do NOT run the lens function and do not try to visualize it on your own',
+        'Use this function to visualize charts for ES|QL queries. The visualisation is displayed to the user above your reply, DO NOT try to generate or display an image yourself.',
       descriptionForUser: 'Use this function to visualize charts for ES|QL queries.',
       parameters: {
         type: 'object',
         additionalProperties: true,
         properties: {
           query: {
+            type: 'string',
+          },
+          chartType: {
             type: 'string',
           },
         },
@@ -189,6 +203,7 @@ export function registerEsqlFunction({
             - "Give me the results of y"
             - "Display the sum of z"
             - "I want to visualize ..."
+            - "I want to display the avg of ..."
             - I want a chart ..."
 
             Examples for determining whether the user does not want to visualize a query:
@@ -227,6 +242,19 @@ export function registerEsqlFunction({
                     description:
                       'Whether the user wants to visualize a query (true) or just wants the query to be displayed (false)',
                   },
+                  chartType: {
+                    type: 'string',
+                    enum: [
+                      ChartType.XY,
+                      ChartType.Bar,
+                      ChartType.Line,
+                      ChartType.Donut,
+                      ChartType.Treemap,
+                      ChartType.Heatmap,
+                      ChartType.Tagcloud,
+                      ChartType.Waffle,
+                    ],
+                  },
                 },
                 required: ['commands', 'functions', 'execute'],
               },
@@ -242,6 +270,7 @@ export function registerEsqlFunction({
         commands: string[];
         functions: string[];
         execute: boolean;
+        chartType?: ChartType;
       };
 
       const keywords = args.commands.concat(args.functions).concat('SYNTAX').concat('OVERVIEW');
@@ -381,7 +410,10 @@ export function registerEsqlFunction({
                       delta: {
                         function_call: {
                           name: 'visualize_query',
-                          arguments: JSON.stringify({ query: esqlQuery }),
+                          arguments: JSON.stringify({
+                            query: esqlQuery,
+                            chartType: args.chartType,
+                          }),
                         },
                       },
                       index: 0,
