@@ -328,7 +328,7 @@ export function registerEsqlFunction({
               }
 
               const esqlQuery = cachedContent.match(/```esql([\s\S]*?)```/)?.[1];
-              
+
               if (esqlQuery && args.execute) {
                 subscriber.next({
                   id,
@@ -336,8 +336,8 @@ export function registerEsqlFunction({
                     function_call: {
                       name: 'visualize_query',
                       arguments: JSON.stringify({
-                         query: esqlQuery,
-                         chartType: args.chartType,
+                        query: esqlQuery,
+                        chartType: args.chartType,
                       }),
                     },
                   },
