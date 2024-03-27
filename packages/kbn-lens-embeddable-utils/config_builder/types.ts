@@ -208,9 +208,9 @@ export type LensRegionMapConfig = Identity<
 export interface LensMosaicConfigBase {
   chartType: 'mosaic';
   /** field name to apply breakdown based on field type or full breakdown configuration */
-  breakdown: LensBreakdownConfig;
+  breakdown: LensBreakdownConfig[];
   /** field name to apply breakdown based on field type or full breakdown configuration */
-  xAxis: LensBreakdownConfig;
+  xAxis?: LensBreakdownConfig;
 }
 
 export type LensMosaicConfig = Identity<LensBaseConfig & LensBaseLayer & LensMosaicConfigBase>;
@@ -228,7 +228,7 @@ export type LensTableConfig = Identity<LensBaseConfig & LensBaseLayer & LensTabl
 export interface LensHeatmapConfigBase {
   chartType: 'heatmap';
   /** field name to apply breakdown based on field type or full breakdown configuration */
-  breakdown: LensBreakdownConfig;
+  breakdown?: LensBreakdownConfig;
   xAxis: LensBreakdownConfig;
   legend?: Identity<LensLegendConfig>;
 }
