@@ -14,6 +14,8 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import { ViewMode } from '@kbn/embeddable-plugin/public';
 import { useExecutionContext } from '@kbn/kibana-react-plugin/public';
 import { createKbnUrlStateStorage, withNotifyOnErrors } from '@kbn/kibana-utils-plugin/public';
+
+import { DASHBOARD_APP_LOCATOR } from '@kbn/deeplinks-analytics';
 import {
   DashboardAppNoDataPage,
   isDashboardAppInNoDataState,
@@ -30,7 +32,6 @@ import {
 } from './url/search_sessions_integration';
 import { DashboardAPI, DashboardRenderer } from '..';
 import { type DashboardEmbedSettings } from './types';
-import { DASHBOARD_APP_LOCATOR } from './locator/locator';
 import { pluginServices } from '../services/plugin_services';
 import { AwaitingDashboardAPI } from '../dashboard_container';
 import { DashboardRedirect } from '../dashboard_container/types';
