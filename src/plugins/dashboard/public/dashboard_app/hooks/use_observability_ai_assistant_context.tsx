@@ -408,6 +408,7 @@ export function useObservabilityAIAssistantContext({
 
                 const embeddableInput = (await configBuilder.build(config, {
                   embeddable: true,
+                  query: dataset,
                 })) as LensEmbeddableInput;
 
                 return dashboardAPI

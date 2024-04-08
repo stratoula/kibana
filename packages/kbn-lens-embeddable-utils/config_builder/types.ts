@@ -7,7 +7,7 @@
  */
 
 import type { FormulaPublicApi, TypedLensByValueInput } from '@kbn/lens-plugin/public';
-import type { Filter, Query } from '@kbn/es-query';
+import type { AggregateQuery, Filter, Query } from '@kbn/es-query';
 import type { DataViewsPublicPluginStart } from '@kbn/data-views-plugin/public';
 import type { Datatable } from '@kbn/expressions-plugin/common';
 
@@ -95,7 +95,7 @@ export interface LensConfigOptions {
   /** optional time range override */
   timeRange?: TimeRange;
   filters?: Filter[];
-  query?: Query;
+  query?: Query | AggregateQuery;
 }
 
 export interface LensAxisTitleVisibilityConfig {
