@@ -35,7 +35,8 @@
       "taskManager",
       "serverless",
       "noDataPage",
-      "observabilityAIAssistant"
+      "observabilityAIAssistant",
+      "lens"
     ],
     "requiredBundles": [
       "kibanaReact",

@@ -18,6 +18,7 @@ import type { FieldFormatsStart } from '@kbn/field-formats-plugin/public/plugin'
 import type { NavigationPublicPluginStart } from '@kbn/navigation-plugin/public';
 import type { NoDataPagePluginStart } from '@kbn/no-data-page-plugin/public';
 import type { ObservabilityAIAssistantPublicStart } from '@kbn/observability-ai-assistant-plugin/public';
+import type { LensPublicStart } from '@kbn/lens-plugin/public';
 import type { PresentationUtilPluginStart } from '@kbn/presentation-util-plugin/public';
 import type { SavedObjectTaggingOssPluginStart } from '@kbn/saved-objects-tagging-oss-plugin/public';
 import type { ScreenshotModePluginStart } from '@kbn/screenshot-mode-plugin/public';
@@ -50,6 +51,7 @@ export let uiActionsService: UiActionsPublicStart;
 export let urlForwardingService: UrlForwardingStart;
 export let usageCollectionService: UsageCollectionStart | undefined;
 export let visualizationsService: VisualizationsStart;
+export let lensService: LensPublicStart | undefined;
 
 const servicesReady$ = new BehaviorSubject(false);
 
@@ -67,6 +69,7 @@ export const setKibanaServices = (kibanaCore: CoreStart, deps: DashboardStartDep
   savedObjectsTaggingService = deps.savedObjectsTaggingOss;
   serverlessService = deps.serverless;
   screenshotModeService = deps.screenshotMode;
+  lensService = deps.lens;
   shareService = deps.share;
   spacesService = deps.spaces;
   uiActionsService = deps.uiActions;

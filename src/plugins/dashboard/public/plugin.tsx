@@ -42,6 +42,7 @@ import type {
   ObservabilityAIAssistantPublicStart,
 } from '@kbn/observability-ai-assistant-plugin/public';
 import type { PresentationUtilPluginStart } from '@kbn/presentation-util-plugin/public';
+import type { LensPublicSetup, LensPublicStart } from '@kbn/lens-plugin/public';
 import type { SavedObjectsManagementPluginStart } from '@kbn/saved-objects-management-plugin/public';
 import type { SavedObjectTaggingOssPluginStart } from '@kbn/saved-objects-tagging-oss-plugin/public';
 import type {
@@ -96,6 +97,7 @@ export interface DashboardSetupDependencies {
   urlForwarding: UrlForwardingSetup;
   unifiedSearch: UnifiedSearchPublicPluginStart;
   observabilityAIAssistant?: ObservabilityAIAssistantPublicSetup;
+  lens?: LensPublicSetup;
 }
 
 export interface DashboardStartDependencies {
@@ -121,6 +123,7 @@ export interface DashboardStartDependencies {
   serverless?: ServerlessPluginStart;
   noDataPage?: NoDataPagePluginStart;
   observabilityAIAssistant?: ObservabilityAIAssistantPublicStart;
+  lens?: LensPublicStart;
 }
 
 export interface DashboardSetup {
