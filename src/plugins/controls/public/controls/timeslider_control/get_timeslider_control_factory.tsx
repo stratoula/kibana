@@ -271,7 +271,6 @@ export const getTimesliderControlFactory = (): ControlFactory<
         Component: (controlPanelClassNames) => {
           const [isAnchored, isPopoverOpen, timeRangeMeta, timeslice] =
             useBatchedPublishingSubjects(isAnchored$, isPopoverOpen$, timeRangeMeta$, timeslice$);
-
           useEffect(() => {
             return () => {
               cleanupTimeRangeSubscription();
@@ -285,6 +284,9 @@ export const getTimesliderControlFactory = (): ControlFactory<
           const to = useMemo(() => {
             return timeslice ? timeslice[TO_INDEX] : timeRangeMeta.timeRangeMax;
           }, [timeslice, timeRangeMeta.timeRangeMax]);
+          const value: Timeslice = useMemo(() => {
+            return [from, to];
+          }, [from, to]);
 
           return (
             <EuiInputPopover
@@ -307,7 +309,7 @@ export const getTimesliderControlFactory = (): ControlFactory<
               <TimeSliderPopoverContent
                 isAnchored={typeof isAnchored === 'boolean' ? isAnchored : false}
                 setIsAnchored={setIsAnchored}
-                value={[from, to]}
+                value={value}
                 onChange={onChange}
                 stepSize={timeRangeMeta.stepSize}
                 ticks={timeRangeMeta.ticks}
