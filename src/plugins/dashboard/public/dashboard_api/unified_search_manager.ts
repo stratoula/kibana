@@ -34,10 +34,12 @@ import { PublishingSubject, StateComparators } from '@kbn/presentation-publishin
 import { ControlGroupApi } from '@kbn/controls-plugin/public';
 import { cloneDeep } from 'lodash';
 import { esqlVariablesService } from '@kbn/esql-variables/common';
+import type { SavedObjectReference } from '@kbn/core-saved-objects-api-server';
 import {
   GlobalQueryStateFromUrl,
   RefreshInterval,
   connectToQueryState,
+  extractSearchSourceReferences,
   syncGlobalQueryStateWithUrl,
 } from '@kbn/data-plugin/public';
 import moment, { Moment } from 'moment';
@@ -328,16 +330,30 @@ export function initializeUnifiedSearchManager(
           setAndSyncTimeRange(lastSavedState.timeRange);
         }
       },
-      getState: (): Pick<
-        DashboardState,
-        'filters' | 'query' | 'refreshInterval' | 'timeRange' | 'timeRestore'
-      > => ({
-        filters: unifiedSearchFilters$.value ?? DEFAULT_DASHBOARD_INPUT.filters,
-        query: query$.value ?? DEFAULT_DASHBOARD_INPUT.query,
-        refreshInterval: refreshInterval$.value,
-        timeRange: timeRange$.value,
-        timeRestore: timeRestore$.value ?? DEFAULT_DASHBOARD_INPUT.timeRestore,
-      }),
+      getState: (): {
+        state: Pick<
+          DashboardState,
+          'filters' | 'query' | 'refreshInterval' | 'timeRange' | 'timeRestore'
+        >;
+        references: SavedObjectReference[];
+      } => {
+        // pinned filters are not serialized when saving the dashboard
+        const serializableFilters = unifiedSearchFilters$.value?.filter((f) => !isFilterPinned(f));
+        const [{ filter, query }, references] = extractSearchSourceReferences({
+          filter: serializableFilters,
+          query: query$.value,
+        });
+        return {
+          state: {
+            filters: filter ?? DEFAULT_DASHBOARD_INPUT.filters,
+            query: (query as Query) ?? DEFAULT_DASHBOARD_INPUT.query,
+            refreshInterval: refreshInterval$.value,
+            timeRange: timeRange$.value,
+            timeRestore: timeRestore$.value ?? DEFAULT_DASHBOARD_INPUT.timeRestore,
+          },
+          references,
+        };
+      },
     },
     cleanup: () => {
       controlGroupSubscriptions.unsubscribe();
