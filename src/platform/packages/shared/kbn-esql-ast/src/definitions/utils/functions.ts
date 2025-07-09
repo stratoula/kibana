@@ -27,7 +27,7 @@ import { buildFunctionDocumentation } from './documentation';
 import { getSafeInsertText, getControlSuggestion } from './autocomplete';
 import { ESQLAstItem, ESQLFunction } from '../../types';
 import { removeFinalUnknownIdentiferArg, isParamExpressionType } from './shared';
-import { getTestFunctions } from './test_functions';
+import { getTestFunctions } from '../../__tests__/functions';
 
 const techPreviewLabel = i18n.translate('kbn-esql-ast.esql.autocomplete.techPreviewLabel', {
   defaultMessage: `Technical Preview`,

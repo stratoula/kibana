@@ -6,13 +6,13 @@
  * your election, the "Elastic License 2.0", the "GNU Affero General Public
  * License v3.0 only", or the "Server Side Public License, v 1".
  */
-import { IndexAutocompleteItem } from '@kbn/esql-types';
+import { IndexAutocompleteItem, InferenceEndpointAutocompleteItem } from '@kbn/esql-types';
 import type {
   ESQLFieldWithMetadata,
   ESQLPolicy,
   ESQLUserDefinedColumn,
   ICommandContext,
-} from '../../commands_registry/types';
+} from '../commands_registry/types';
 
 export const joinIndices: IndexAutocompleteItem[] = [
   {
@@ -72,6 +72,13 @@ const indexes = [
   '.secret_index',
   'my-index',
   'unsupported_index',
+];
+
+const inferenceEndpoints: InferenceEndpointAutocompleteItem[] = [
+  {
+    inference_id: 'inference_1',
+    task_type: 'completion',
+  },
 ];
 
 export const mockContext: ICommandContext = {
@@ -160,4 +167,5 @@ export const mockContext: ICommandContext = {
     type: 'Index',
   })),
   joinSources: joinIndices,
+  inferenceEndpoints,
 };

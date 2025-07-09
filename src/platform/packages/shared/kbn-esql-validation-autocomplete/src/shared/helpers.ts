@@ -34,7 +34,7 @@ import { aggFunctionDefinitions } from '@kbn/esql-ast/src/definitions/generated/
 import { groupingFunctionDefinitions } from '@kbn/esql-ast/src/definitions/generated/grouping_functions';
 import { scalarFunctionDefinitions } from '@kbn/esql-ast/src/definitions/generated/scalar_functions';
 import { operatorsDefinitions } from '@kbn/esql-ast/src/definitions/all_operators';
-import { getTestFunctions } from '@kbn/esql-ast/src/definitions/utils/test_functions';
+import { getTestFunctions } from '@kbn/esql-ast/src/__tests__/functions';
 import {
   ESQLInlineCast,
   ESQLLocation,
