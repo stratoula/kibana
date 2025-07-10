@@ -32,6 +32,12 @@ export const joinIndices: IndexAutocompleteItem[] = [
   },
 ];
 
+export const lookupIndexFields = [
+  { name: 'booleanField', type: 'boolean' },
+  { name: 'dateField', type: 'date' },
+  { name: 'joinIndexOnlyField', type: 'text' },
+];
+
 export const timeseriesIndices: IndexAutocompleteItem[] = [
   {
     name: 'timeseries_index',
@@ -73,6 +79,8 @@ const indexes = [
   'my-index',
   'unsupported_index',
 ];
+
+export const integrations = ['nginx', 'k8s'];
 
 const inferenceEndpoints: InferenceEndpointAutocompleteItem[] = [
   {
@@ -159,6 +167,7 @@ export const mockContext: ICommandContext = {
     ['geoPointField', { name: 'geoPointField', type: 'geo_point' }],
     ['geoShapeField', { name: 'geoShapeField', type: 'geo_shape' }],
     ['versionField', { name: 'versionField', type: 'version' }],
+    ['longField', { name: 'longField', type: 'long' }],
   ]),
   policies: new Map<string, ESQLPolicy>(policies.map((policy) => [policy.name, policy])),
   sources: indexes.map((name) => ({

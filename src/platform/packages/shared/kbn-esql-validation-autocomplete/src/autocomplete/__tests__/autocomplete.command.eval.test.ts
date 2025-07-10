@@ -12,10 +12,8 @@ import {
   setup,
   getFunctionSignaturesByReturnType,
   getFieldNamesByType,
-  createCustomCallbackMocks,
   getLiteralsByType,
   AssertSuggestionsFn,
-  fields,
 } from './helpers';
 import { roundParameterTypes } from './constants';
 
@@ -26,157 +24,6 @@ describe('autocomplete.suggest', () => {
     beforeEach(async () => {
       const setupResult = await setup();
       assertSuggestions = setupResult.assertSuggestions;
-    });
-
-    test('empty expression', async () => {
-      await assertSuggestions('from a | eval /', [
-        'col0 = ',
-        ...getFieldNamesByType('any').map((v) => `${v} `),
-        ...getFunctionSignaturesByReturnType(Location.EVAL, 'any', { scalar: true }),
-      ]);
-
-      await assertSuggestions('from a | eval col0 = /', [
-        ...getFieldNamesByType('any').map((v) => `${v} `),
-        ...getFunctionSignaturesByReturnType(Location.EVAL, 'any', { scalar: true }),
-      ]);
-
-      await assertSuggestions('from a | eval col0 = 1, /', [
-        'col1 = ',
-        ...getFieldNamesByType('any').map((v) => `${v} `),
-        ...getFunctionSignaturesByReturnType(Location.EVAL, 'any', { scalar: true }),
-      ]);
-
-      await assertSuggestions('from a | eval col0 = 1, col1 = /', [
-        ...getFieldNamesByType('any').map((v) => `${v} `),
-        ...getFunctionSignaturesByReturnType(Location.EVAL, 'any', { scalar: true }),
-      ]);
-
-      // Re-enable with https://github.com/elastic/kibana/issues/210639
-      // await assertSuggestions('from a | eval a=doubleField, /', [
-      //   'col0 = ',
-      //   ...getFieldNamesByType('any').map((v) => `${v} `),
-      //   'a',
-      //   ...getFunctionSignaturesByReturnType(Location.EVAL, 'any', { scalar: true }),
-      // ]);
-
-      await assertSuggestions(
-        'from b | stats avg(doubleField) by keywordField | eval /',
-        [
-          'col0 = ',
-          '`avg(doubleField)` ',
-          ...getFunctionSignaturesByReturnType(Location.EVAL, 'any', { scalar: true }),
-        ],
-        {
-          triggerCharacter: ' ',
-          // make aware EVAL of the previous STATS command
-          callbacks: createCustomCallbackMocks(
-            [{ name: 'avg(doubleField)', type: 'double' }],
-            undefined,
-            undefined
-          ),
-        }
-      );
-      await assertSuggestions(
-        'from c | eval abs(doubleField) + 1 | eval /',
-        [
-          'col0 = ',
-          ...getFieldNamesByType('any').map((v) => `${v} `),
-          '`abs(doubleField) + 1` ',
-          ...getFunctionSignaturesByReturnType(Location.EVAL, 'any', { scalar: true }),
-        ],
-        {
-          triggerCharacter: ' ',
-          callbacks: createCustomCallbackMocks(
-            [...fields, { name: 'abs(doubleField) + 1', type: 'double' }],
-            undefined,
-            undefined
-          ),
-        }
-      );
-      await assertSuggestions(
-        'from d | stats avg(doubleField) by keywordField | eval /',
-        [
-          'col0 = ',
-          '`avg(doubleField)` ',
-          ...getFunctionSignaturesByReturnType(Location.EVAL, 'any', { scalar: true }),
-        ],
-        {
-          triggerCharacter: ' ',
-          callbacks: createCustomCallbackMocks(
-            [{ name: 'avg(doubleField)', type: 'double' }],
-            undefined,
-            undefined
-          ),
-        }
-      );
-    });
-
-    test('after column', async () => {
-      await assertSuggestions('from a | eval doubleField /', [
-        ...getFunctionSignaturesByReturnType(
-          Location.EVAL,
-          'any',
-          { operators: true, skipAssign: true },
-          ['double']
-        ),
-      ]);
-    });
-
-    test('after column after assignment', async () => {
-      const { suggest } = await setup();
-      const suggestions = await suggest('from a | eval col = doubleField /');
-      expect(suggestions.map((s) => s.text)).toContain('| ');
-    });
-
-    test('after NOT', async () => {
-      await assertSuggestions('from index | EVAL keywordField not /', [
-        'LIKE $0',
-        'RLIKE $0',
-        'IN $0',
-      ]);
-
-      await assertSuggestions('from index | EVAL keywordField NOT /', [
-        'LIKE $0',
-        'RLIKE $0',
-        'IN $0',
-      ]);
-
-      await assertSuggestions('from index | EVAL not /', [
-        ...getFieldNamesByType('boolean').map((v) => `${v} `),
-        ...getFunctionSignaturesByReturnType(Location.EVAL, 'boolean', { scalar: true }),
-      ]);
-    });
-
-    test('with lists', async () => {
-      await assertSuggestions('from index | EVAL doubleField in /', ['( $0 )']);
-      await assertSuggestions(
-        'from index | EVAL doubleField in (/)',
-        [
-          ...getFieldNamesByType('double').filter((name) => name !== 'doubleField'),
-          ...getFunctionSignaturesByReturnType(Location.EVAL, 'double', { scalar: true }),
-        ],
-        { triggerCharacter: '(' }
-      );
-      await assertSuggestions('from index | EVAL doubleField not in /', ['( $0 )']);
-    });
-
-    test('after assignment', async () => {
-      await assertSuggestions(
-        'from a | eval a=/',
-        [
-          ...getFieldNamesByType('any').map((v) => `${v} `),
-          ...getFunctionSignaturesByReturnType(Location.EVAL, 'any', { scalar: true }),
-        ],
-        { triggerCharacter: '=' }
-      );
-      await assertSuggestions(
-        'from a | eval a=abs(doubleField), b= /',
-        [
-          ...getFieldNamesByType('any').map((v) => `${v} `),
-          ...getFunctionSignaturesByReturnType(Location.EVAL, 'any', { scalar: true }),
-        ],
-        { triggerCharacter: '=' }
-      );
     });
 
     test('in and around functions', async () => {
@@ -409,21 +256,6 @@ describe('autocomplete.suggest', () => {
         triggerCharacter: ' ',
       });
 
-      await assertSuggestions(
-        'from a | eval a = 1 /',
-        [
-          ', ',
-          '| ',
-          ...getFunctionSignaturesByReturnType(
-            Location.EVAL,
-            'any',
-            { operators: true, skipAssign: true },
-            ['integer']
-          ),
-        ],
-        { triggerCharacter: ' ' }
-      );
-      await assertSuggestions('from a | eval a = 1 year /', [', ', '| ', '+ $0', '- $0']);
       await assertSuggestions(
         'from a | eval col0=date_trunc(/)',
         [

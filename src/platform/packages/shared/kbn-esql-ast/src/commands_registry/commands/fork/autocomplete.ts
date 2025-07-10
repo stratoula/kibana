@@ -91,7 +91,7 @@ const newBranchSuggestion: ISuggestionItem = {
 const getActiveBranch = (command: ESQLCommand) => {
   const finalBranch = command.args[command.args.length - 1];
 
-  if (Array.isArray(finalBranch) || finalBranch.type !== 'query') {
+  if (Array.isArray(finalBranch) || finalBranch?.type !== 'query') {
     // should never happen
     return;
   }
