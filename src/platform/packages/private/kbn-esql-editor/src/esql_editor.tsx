@@ -691,6 +691,14 @@ const ESQLEditorInternal = function ESQLEditor({
     }
   }, [isLoading, isQueryLoading, parseMessages, code]);
 
+  useEffect(() => {
+    const getTags = async () => {
+      const tags = await kibana.services?.esql?.getProjectTags();
+      console.log(tags);
+    };
+    getTags();
+  }, [kibana.services?.esql]);
+
   const queryValidation = useCallback(
     async ({ active }: { active: boolean }) => {
       if (!editorModel.current || editorModel.current.isDisposed()) return;

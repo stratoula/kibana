@@ -159,6 +159,18 @@ export class EsqlPlugin implements Plugin<{}, EsqlPluginStart> {
       1000 * 15 // Refresh the cache in the background only if 15 seconds passed since the last call
     );
 
+    const getProjectTags = cacheNonParametrizedAsyncFunction(
+      async () => {
+        const result = await core.http.get<IndicesAutocompleteResult>(
+          '/internal/esql/autocomplete/project_tags'
+        );
+
+        return result;
+      },
+      1000 * 60 * 5, // Keep the value in cache for 5 minutes
+      1000 * 15 // Refresh the cache in the background only if 15 seconds passed since the last call
+    );
+
     const getEditorExtensionsAutocomplete = async (
       queryString: string,
       activeSolutionId: SolutionId
@@ -193,6 +205,7 @@ export class EsqlPlugin implements Plugin<{}, EsqlPluginStart> {
       getTimeseriesIndicesAutocomplete,
       getEditorExtensionsAutocomplete: cachedGetEditorExtensionsAutocomplete,
       getInferenceEndpointsAutocomplete,
+      getProjectTags,
       variablesService,
       getLicense: async () => await licensing?.getLicense(),
     };

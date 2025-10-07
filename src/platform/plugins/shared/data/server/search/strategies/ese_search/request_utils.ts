@@ -35,7 +35,8 @@ export async function getIgnoreThrottled(
 export async function getDefaultAsyncSubmitParams(
   uiSettingsClient: Pick<IUiSettingsClient, 'get'>,
   searchConfig: SearchConfigSchema,
-  options: ISearchOptions
+  options: ISearchOptions,
+  enableCpsSetting?: boolean
 ): Promise<
   Pick<
     AsyncSearchSubmitRequest,
@@ -55,6 +56,7 @@ export async function getDefaultAsyncSubmitParams(
     batched_reduce_size: searchConfig.asyncSearch.batchedReduceSize,
     // Decreases delays due to network when using CCS
     ccs_minimize_roundtrips: true,
+    // ...(enableCpsSetting ? {} : { ccs_minimize_roundtrips: true }),
     ...getCommonDefaultAsyncSubmitParams(searchConfig, options),
     ...(await getIgnoreThrottled(uiSettingsClient)),
     ...(await getDefaultSearchParams(uiSettingsClient)),

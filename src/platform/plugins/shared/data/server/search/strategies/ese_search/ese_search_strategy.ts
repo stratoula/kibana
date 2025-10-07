@@ -10,6 +10,7 @@
 import type { Observable } from 'rxjs';
 import type { Logger, SharedGlobalConfig } from '@kbn/core/server';
 import { catchError, tap } from 'rxjs';
+import { get } from 'lodash';
 import { firstValueFrom, from } from 'rxjs';
 import type { ISearchOptions, IEsSearchRequest, IEsSearchResponse } from '@kbn/search-types';
 import { getKbnServerError } from '@kbn/kibana-utils-plugin/server';
@@ -99,6 +100,8 @@ export const enhancedEsSearchStrategyProvider = (
     { esClient, uiSettingsClient }: SearchStrategyDependencies
   ) {
     const client = useInternalUser ? esClient.asInternalUser : esClient.asCurrentUser;
+    // const clusterSettings = await client.cluster.getSettings();
+    // const enableCpsSetting = get(clusterSettings, 'serverless.cross_project.enabled', false);
     const params = {
       ...(await getDefaultAsyncSubmitParams(uiSettingsClient, searchConfig, options)),
       ...request.params,
