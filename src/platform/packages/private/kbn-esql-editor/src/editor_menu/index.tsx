@@ -65,12 +65,12 @@ export function ESQLMenu({
         >
           <EuiButtonIcon
             iconType={MagnifyGradientIcon}
+            color="text"
             size="xs"
             aria-label={searchPlaceholder}
             onClick={onToggleVisor}
             isDisabled={!onToggleVisor}
             data-test-subj="esql-menu-button"
-            color="text"
           />
         </EuiToolTip>
       </EuiFlexItem>

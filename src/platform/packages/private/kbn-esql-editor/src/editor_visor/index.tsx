@@ -23,7 +23,13 @@ import { isEqual } from 'lodash';
 import { useKibana } from '@kbn/kibana-react-plugin/public';
 import { SourcesDropdown } from './sources_dropdown';
 import { ModeSelector, VisorMode } from './mode_selector';
-import { visorStyles, visorWidthPercentage, dropdownWidthPercentage } from './visor.styles';
+import {
+  visorStyles,
+  visorWidthPercentage,
+  dropdownWidthPercentage,
+  MODE_SELECT_WIDTH_KQL,
+  MODE_SELECT_WIDTH_NL,
+} from './visor.styles';
 import type { ESQLEditorDeps } from '../types';
 import { extractQueryFromLLMMessage } from './utils';
 
@@ -178,12 +184,16 @@ export function QuickSearchVisor({
     return calculateWidthFromCharCount(labelLength, { maxWidth: maxComboBoxWidth });
   }, [selectedSources]);
 
+  const modeSelectWidth =
+    visorMode === VisorMode.KQL ? MODE_SELECT_WIDTH_KQL : MODE_SELECT_WIDTH_NL;
+
   const styles = visorStyles(
     euiTheme,
     comboBoxWidth,
     Boolean(isSpaceReduced),
     isVisible,
-    isDarkMode
+    isDarkMode,
+    modeSelectWidth
   );
 
   if (!KQLComponent) {
@@ -227,7 +237,7 @@ export function QuickSearchVisor({
                 <div ref={kqlInputRef}>
                   <KQLComponent
                     isDisabled={!isVisible}
-                    iconType="search"
+                    iconType=""
                     disableLanguageSwitcher={true}
                     indexPatterns={selectedSources.map((source) => source.label)}
                     bubbleSubmitEvent={false}

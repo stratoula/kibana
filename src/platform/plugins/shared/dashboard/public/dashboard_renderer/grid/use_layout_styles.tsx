@@ -103,7 +103,7 @@ export const useLayoutStyles = () => {
         background-color: ${euiTheme.colors.backgroundBasePlain};
         outline: var(--dashboardActivePanelBorderStyle);
         border-radius: ${euiTheme.border.radius.medium} ${euiTheme.border.radius.medium};
-        padding-left: 8px;
+        padding-left: ${euiTheme.size.s};
         // hide accordian arrow + panel count text when row is being dragged
         & .kbnGridSectionTitle--button svg,
         & .kbnGridLayout--panelCount {

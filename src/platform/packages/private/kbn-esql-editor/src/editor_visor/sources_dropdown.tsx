@@ -21,6 +21,7 @@ import {
   EuiNotificationBadge,
   EuiPopover,
   EuiText,
+  euiFontSizeFromScale,
   htmlIdGenerator,
   useEuiTheme,
 } from '@elastic/eui';
@@ -32,12 +33,12 @@ import { generateIndexPatterns } from './utils';
 
 const POPOVER_WIDTH = 350;
 
-const sourcesDropdownCss = css`
+const sourcesDropdownBaseCss = css`
   box-shadow: none;
   &:focus,
-          &: focus-within,
-          &:hover,
-          &:active {
+  &:focus-within,
+  &:hover,
+  &:active {
     box-shadow: none !important;
     outline: none !important;
   }
@@ -59,6 +60,16 @@ export function SourcesDropdown({ currentSources, onChangeSources }: SourcesDrop
   const [isPopoverOpen, setPopoverIsOpen] = useState(false);
   const [fetchedSources, setFetchedSources] = useState<EuiComboBoxOptionOption[]>([]);
   const euiTheme = useEuiTheme();
+
+  const sourcesDropdownCss = useMemo(
+    () => [
+      sourcesDropdownBaseCss,
+      css`
+        font-size: ${euiFontSizeFromScale('xs', euiTheme.euiTheme)} !important;
+      `,
+    ],
+    [euiTheme.euiTheme]
+  );
   const isMounted = useMountedState();
   const popoverId = useMemo(() => htmlIdGenerator()(), []);
   const isFetchingSources = useRef(false);
