@@ -8,8 +8,6 @@
  */
 import React from 'react';
 
-export const ESQL_GRADIENT = `linear-gradient(135deg, rgb(97, 162, 255) 18.35%, rgb(138, 130, 232) 51.95%, rgb(216, 70, 187) 88.68%, rgb(255, 39, 165) 112.9%)`;
-
 const GRADIENT_ID = 'esqlMagnifyGradient';
 
 export const MagnifyGradientIcon = (props: React.SVGProps<SVGSVGElement>) => (
