@@ -1,0 +1,1 @@
+export declare const useUserProfiles: (uids: string[]) => import("@kbn/react-query").UseQueryResult<import("@kbn/security-plugin-types-common").UserProfile<import("@kbn/security-plugin-types-common").UserProfileData>[], unknown>;

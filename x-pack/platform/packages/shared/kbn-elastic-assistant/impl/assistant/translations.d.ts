@@ -1,0 +1,9 @@
+export declare const DEFAULT_ASSISTANT_TITLE: string;
+export declare const SUBMIT_MESSAGE: string;
+export declare const API_ERROR: string;
+export declare const DOCUMENTATION: string;
+export declare const EMPTY_SCREEN_TITLE: string;
+export declare const EMPTY_SCREEN_DESCRIPTION: string;
+export declare const WELCOME_SCREEN_TITLE: string;
+export declare const WELCOME_SCREEN_DESCRIPTION: string;
+export declare const DISCLAIMER: string;

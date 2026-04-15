@@ -1,0 +1,10 @@
+export declare const SETTINGS_TITLE: string;
+export declare const SETTINGS_DESCRIPTION: string;
+export declare const QUICK_PROMPT_NAME: string;
+export declare const QUICK_PROMPT_PROMPT: string;
+export declare const QUICK_PROMPT_PROMPT_PLACEHOLDER: string;
+export declare const QUICK_PROMPT_BADGE_COLOR: string;
+export declare const QUICK_PROMPT_CONTEXTS: string;
+export declare const QUICK_PROMPT_CONTEXTS_HELP_TEXT: string;
+export declare const CANCEL: string;
+export declare const SAVE: string;

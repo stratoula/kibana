@@ -1,0 +1,14 @@
+export declare const SETTINGS: string;
+export declare const SECURITY_AI_SETTINGS: string;
+export declare const SETTINGS_UPDATED_TOAST_TITLE: string;
+export declare const GEN_AI_SETTINGS_BUTTON: string;
+export declare const CONNECTORS_MENU_ITEM: string;
+export declare const CONVERSATIONS_MENU_ITEM: string;
+export declare const QUICK_PROMPTS_MENU_ITEM: string;
+export declare const SYSTEM_PROMPTS_MENU_ITEM: string;
+export declare const ANONYMIZATION_MENU_ITEM: string;
+export declare const KNOWLEDGE_BASE_MENU_ITEM: string;
+export declare const EVALUATION_MENU_ITEM: string;
+export declare const CANCEL: string;
+export declare const SAVE: string;
+export declare const DELETE: string;

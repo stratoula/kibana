@@ -1,0 +1,14 @@
+export declare const ALERTS_LABEL: string;
+export declare const LATEST_AND_RISKIEST_OPEN_ALERTS: (alertsCount: number) => string;
+export declare const YOUR_ANONYMIZATION_SETTINGS: string;
+export declare const SELECT_FEWER_ALERTS: string;
+export declare const ALERTS_RANGE: string;
+export declare const SETTINGS_TITLE: string;
+export declare const SETTINGS_BADGE: string;
+export declare const KNOWLEDGE_BASE_DOCUMENTATION: string;
+export declare const KNOWLEDGE_BASE_LABEL: string;
+export declare const SETUP_KNOWLEDGE_BASE_BUTTON: string;
+export declare const SETUP_KNOWLEDGE_BASE_BUTTON_TOOLTIP: string;
+export declare const KNOWLEDGE_BASE_DESCRIPTION: string;
+export declare const KNOWLEDGE_BASE_DESCRIPTION_INSTALLED: (kbIndexPattern: string) => string;
+export declare const KNOWLEDGE_BASE_ELSER_LABEL: string;

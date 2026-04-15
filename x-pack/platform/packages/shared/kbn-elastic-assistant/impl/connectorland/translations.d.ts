@@ -1,0 +1,12 @@
+export declare const LOAD_ACTIONS_ERROR_MESSAGE: string;
+export declare const LOAD_CONNECTORS_ERROR_MESSAGE: string;
+export declare const PRECONFIGURED_CONNECTOR: string;
+export declare const CONNECTOR_SELECTOR_TITLE: string;
+export declare const ADD_NEW_CONNECTOR: string;
+export declare const ADD_CONNECTOR: string;
+export declare const INLINE_CONNECTOR_PLACEHOLDER: string;
+export declare const ADD_CONNECTOR_TITLE: string;
+export declare const ADD_CONNECTOR_DESCRIPTION: string;
+export declare const ADD_CONNECTOR_MISSING_PRIVILEGES_TITLE: string;
+export declare const ADD_CONNECTOR_MISSING_PRIVILEGES_DESCRIPTION: string;
+export declare const MISSING_CONNECTOR_CALLOUT_TITLE: string;

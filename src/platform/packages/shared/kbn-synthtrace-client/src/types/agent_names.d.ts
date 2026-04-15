@@ -1,0 +1,6 @@
+type ElasticAgentName = 'go' | 'java' | 'js-base' | 'iOS/swift' | 'rum-js' | 'nodejs' | 'python' | 'dotnet' | 'ruby' | 'php' | 'android/java';
+export declare const EDOT_AGENT_NAMES: readonly ["opentelemetry/java/elastic", "opentelemetry/dotnet/elastic", "opentelemetry/nodejs/elastic", "opentelemetry/php/elastic", "opentelemetry/python/elastic"];
+declare const OPEN_TELEMETRY_AGENT_NAMES: readonly ["opentelemetry/java/elastic", "opentelemetry/dotnet/elastic", "opentelemetry/nodejs/elastic", "opentelemetry/php/elastic", "opentelemetry/python/elastic", "otlp", "opentelemetry", "opentelemetry/cpp", "opentelemetry/dotnet", "opentelemetry/erlang", "opentelemetry/go", "opentelemetry/java", "opentelemetry/nodejs", "opentelemetry/php", "opentelemetry/python", "opentelemetry/ruby", "opentelemetry/rust", "opentelemetry/swift", "opentelemetry/android", "opentelemetry/webjs", "otlp/cpp", "otlp/dotnet", "otlp/erlang", "otlp/go", "otlp/java", "otlp/nodejs", "otlp/php", "otlp/python", "otlp/ruby", "otlp/rust", "otlp/swift", "otlp/android", "otlp/webjs"];
+export type OpenTelemetryAgentName = (typeof OPEN_TELEMETRY_AGENT_NAMES)[number];
+export type AgentName = ElasticAgentName | OpenTelemetryAgentName;
+export {};

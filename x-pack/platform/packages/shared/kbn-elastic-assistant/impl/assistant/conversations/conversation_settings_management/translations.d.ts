@@ -1,0 +1,16 @@
+export declare const CONVERSATIONS_SETTINGS_TITLE: string;
+export declare const CONVERSATIONS_LIST_TITLE: string;
+export declare const CONVERSATIONS_LIST_DESCRIPTION: string;
+export declare const CONVERSATIONS_TABLE_COLUMN_TITLE: string;
+export declare const CONVERSATIONS_TABLE_COLUMN_SYSTEM_PROMPT: string;
+export declare const CONVERSATIONS_TABLE_COLUMN_CONNECTOR: string;
+export declare const CONVERSATIONS_TABLE_COLUMN_SHARING: string;
+export declare const CONVERSATIONS_TABLE_COLUMN_UPDATED_AT: string;
+export declare const CONVERSATIONS_FLYOUT_DEFAULT_TITLE: string;
+export declare const DELETE_CONVERSATION_CONFIRMATION_DEFAULT_TITLE: string;
+export declare const DELETE_CONVERSATION_CONFIRMATION_TITLE: (conversationTitle: string) => string;
+export declare const DELETE_MULTIPLE_CONVERSATIONS_CONFIRMATION_TITLE: (count: number) => string;
+export declare const SELECTED_CONVERSATIONS: (selected: number) => string;
+export declare const SELECT_ALL_CONVERSATIONS: (conversations: number) => string;
+export declare const UNSELECT_ALL_CONVERSATIONS: (conversations: number) => string;
+export declare const DELETE_SELECTED_CONVERSATIONS: string;

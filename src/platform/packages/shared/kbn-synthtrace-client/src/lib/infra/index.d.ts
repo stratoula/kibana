@@ -1,0 +1,25 @@
+import type { DockerContainerMetricsDocument } from './docker_container';
+import { dockerContainer } from './docker_container';
+import type { HostMetricsDocument } from './host';
+import { host, minimalHost } from './host';
+import type { K8sContainerMetricsDocument } from './k8s_container';
+import { k8sContainer } from './k8s_container';
+import type { PodMetricsDocument } from './pod';
+import { pod } from './pod';
+import type { AWSRdsMetricsDocument } from './aws/rds';
+import { awsRds } from './aws/rds';
+import type { K8sNodeMetricsDocument } from './k8s_node';
+import { k8sNode } from './k8s_node';
+import type { SemconvHostMetricsDocument } from './semconv_host';
+import { semconvHost } from './semconv_host';
+export type InfraDocument = HostMetricsDocument | PodMetricsDocument | DockerContainerMetricsDocument | K8sContainerMetricsDocument | AWSRdsMetricsDocument | K8sNodeMetricsDocument | SemconvHostMetricsDocument;
+export declare const infra: {
+    host: typeof host;
+    minimalHost: typeof minimalHost;
+    semconvHost: typeof semconvHost;
+    pod: typeof pod;
+    dockerContainer: typeof dockerContainer;
+    k8sContainer: typeof k8sContainer;
+    awsRds: typeof awsRds;
+    k8sNode: typeof k8sNode;
+};

@@ -1,0 +1,10 @@
+import type { Reference } from '@kbn/content-management-utils';
+import type { LensByRefSerializedState, LensByValueSerializedState, LensSerializedState } from '@kbn/lens-common';
+import type { LensByRefSerializedAPIConfig, LensByValueSerializedAPIConfig, LensSerializedAPIConfig } from '@kbn/lens-common-2';
+import type { FlattenedLensByValuePanelSchema } from '../../server/types';
+export declare const LENS_SAVED_OBJECT_REF_NAME = "savedObjectRef";
+export declare function findLensReference(references?: Reference[]): Reference | undefined;
+export declare function isByRefLensState(state: LensSerializedState): state is LensByRefSerializedState;
+export declare function isByRefLensConfig(config: LensByRefSerializedAPIConfig | LensSerializedAPIConfig | FlattenedLensByValuePanelSchema): config is LensByRefSerializedAPIConfig;
+export declare function isFlattenedAPIConfig(config: LensSerializedAPIConfig | FlattenedLensByValuePanelSchema | LensByValueSerializedState): config is FlattenedLensByValuePanelSchema;
+export declare function unflattenAPIConfig(config: FlattenedLensByValuePanelSchema): LensByValueSerializedAPIConfig;

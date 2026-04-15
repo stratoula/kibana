@@ -1,0 +1,16 @@
+export declare const MODAL_TITLE: string;
+export declare const BETA_LABEL: string;
+export declare const WHAT_TO_EXPECT: string;
+export declare const DUAL_EXPERIENCES_TITLE: string;
+export declare const DUAL_EXPERIENCES_BODY: string;
+export declare const DATA_ISOLATION_TITLE: string;
+export declare const DATA_ISOLATION_BODY: string;
+export declare const FEATURE_PARITY_TITLE: string;
+export declare const FEATURE_PARITY_BODY: string;
+export declare const NEED_HISTORY_TITLE: string;
+export declare const NEED_HISTORY_BODY: string;
+export declare const LEARN_MORE_CALLOUT_TITLE: string;
+export declare const DOCUMENTATION_LINK_TEXT: string;
+export declare const REVERT_BUTTON: string;
+export declare const CONTINUE_BUTTON: string;
+export declare const CONTINUE_BUTTON_READONLY: string;

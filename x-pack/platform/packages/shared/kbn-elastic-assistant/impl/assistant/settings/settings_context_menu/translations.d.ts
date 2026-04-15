@@ -1,0 +1,16 @@
+export declare const AI_ASSISTANT_MENU: string;
+export declare const CONVO_ASSISTANT_MENU: string;
+export declare const AI_ASSISTANT_SETTINGS: string;
+export declare const ANONYMIZATION: string;
+export declare const KNOWLEDGE_BASE: string;
+export declare const ALERTS_TO_ANALYZE: string;
+export declare const RESET_CONVERSATION: string;
+export declare const ANONYMIZE_VALUES: string;
+export declare const SHOW_CITATIONS: string;
+export declare const CHAT_OPTIONS: string;
+export declare const CANCEL_BUTTON_TEXT: string;
+export declare const RESET_BUTTON_TEXT: string;
+export declare const CLEAR_CHAT_CONFIRMATION: string;
+export declare const TRY_AI_AGENT: string;
+export declare const AI_AGENT_SWITCH_ERROR: string;
+export declare const AI_AGENT_MANAGE_PRIVILEGE_REQUIRED: string;

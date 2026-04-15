@@ -1,0 +1,784 @@
+import type { LocatorPublic } from '@kbn/share-plugin/common';
+import { type DashboardLocatorParams } from '../../../../common';
+import type { DashboardApi } from '../../../dashboard_api/types';
+/**
+ * Builds common share options used by both the share modal and export items.
+ */
+export declare function buildDashboardShareOptions({ objectId, dashboardTitle, }: {
+    objectId?: string;
+    dashboardTitle?: string;
+}): {
+    locatorParams: DashboardLocatorParams;
+    shareableUrl: string;
+    allowShortUrl: boolean;
+    title: string;
+    hasPanelChanges: boolean;
+};
+/**
+ * Returns the objectTypeMeta config for export integrations.
+ */
+export declare function getExportObjectTypeMeta(): {
+    title: string;
+    config: {
+        integration: {
+            export: {
+                exportJson: {};
+                pdfReports: {
+                    draftModeCallOut: boolean;
+                };
+                imageReports: {
+                    draftModeCallOut: boolean;
+                };
+            };
+        };
+    };
+};
+/**
+ * Builds sharingData for export operations.
+ */
+export declare function buildExportSharingData(title: string, locatorParams: DashboardLocatorParams, dashboardApi: DashboardApi): {
+    title: string;
+    locatorParams: {
+        id: string;
+        params: Partial<Omit<import("@kbn/utility-types").Writable<Readonly<{
+            query?: Readonly<{} & {
+                language: "kql" | "lucene";
+                expression: string;
+            }> | undefined;
+            description?: string | undefined;
+            tags?: string[] | undefined;
+            time_range?: Readonly<{
+                mode?: "relative" | "absolute" | undefined;
+            } & {
+                from: string;
+                to: string;
+            }> | undefined;
+            filters?: (Readonly<{
+                label?: string | undefined;
+                disabled?: boolean | undefined;
+                negate?: boolean | undefined;
+                data_view_id?: string | undefined;
+                controlled_by?: string | undefined;
+                is_multi_index?: boolean | undefined;
+            } & {
+                type: "condition";
+                condition: Readonly<{
+                    negate?: boolean | undefined;
+                } & {
+                    value: string | number | boolean;
+                    operator: "is";
+                    field: string;
+                }> | Readonly<{
+                    negate?: boolean | undefined;
+                } & {
+                    value: number[] | string[] | boolean[];
+                    operator: "is_one_of";
+                    field: string;
+                }> | Readonly<{
+                    negate?: boolean | undefined;
+                } & {
+                    value: Readonly<{
+                        format?: string | undefined;
+                        gt?: string | number | undefined;
+                        gte?: string | number | undefined;
+                        lt?: string | number | undefined;
+                        lte?: string | number | undefined;
+                    } & {}>;
+                    operator: "range";
+                    field: string;
+                }> | Readonly<{
+                    negate?: boolean | undefined;
+                } & {
+                    operator: "exists";
+                    field: string;
+                }>;
+            }> | Readonly<{
+                label?: string | undefined;
+                disabled?: boolean | undefined;
+                negate?: boolean | undefined;
+                data_view_id?: string | undefined;
+                controlled_by?: string | undefined;
+                is_multi_index?: boolean | undefined;
+            } & {
+                group: Readonly<{} & {
+                    operator: "or" | "and";
+                    conditions: (Readonly<{
+                        negate?: boolean | undefined;
+                    } & {
+                        value: string | number | boolean;
+                        operator: "is";
+                        field: string;
+                    }> | Readonly<{
+                        negate?: boolean | undefined;
+                    } & {
+                        value: number[] | string[] | boolean[];
+                        operator: "is_one_of";
+                        field: string;
+                    }> | Readonly<{
+                        negate?: boolean | undefined;
+                    } & {
+                        value: Readonly<{
+                            format?: string | undefined;
+                            gt?: string | number | undefined;
+                            gte?: string | number | undefined;
+                            lt?: string | number | undefined;
+                            lte?: string | number | undefined;
+                        } & {}>;
+                        operator: "range";
+                        field: string;
+                    }> | Readonly<{
+                        negate?: boolean | undefined;
+                    } & {
+                        operator: "exists";
+                        field: string;
+                    }> | import("@kbn/as-code-filters-schema").AsCodeGroupFilterRecursive)[];
+                }>;
+                type: "group";
+            }> | Readonly<{
+                label?: string | undefined;
+                disabled?: boolean | undefined;
+                params?: any;
+                field?: string | undefined;
+                negate?: boolean | undefined;
+                data_view_id?: string | undefined;
+                controlled_by?: string | undefined;
+                is_multi_index?: boolean | undefined;
+            } & {
+                type: "dsl";
+                dsl: Record<string, any>;
+            }> | Readonly<{
+                label?: string | undefined;
+                disabled?: boolean | undefined;
+                negate?: boolean | undefined;
+                data_view_id?: string | undefined;
+                controlled_by?: string | undefined;
+                is_multi_index?: boolean | undefined;
+            } & {
+                type: "spatial";
+                dsl: Record<string, any>;
+            }>)[] | undefined;
+            project_routing?: string | undefined;
+            refresh_interval?: Readonly<{} & {
+                value: number;
+                pause: boolean;
+            }> | undefined;
+            access_control?: Readonly<{
+                access_mode?: "default" | "write_restricted" | undefined;
+            } & {}> | undefined;
+        } & {
+            title: string;
+            options: Readonly<{} & {
+                auto_apply_filters: boolean;
+                hide_panel_titles: boolean;
+                hide_panel_borders: boolean;
+                use_margins: boolean;
+                sync_colors: boolean;
+                sync_tooltips: boolean;
+                sync_cursor: boolean;
+            }>;
+            panels: (Readonly<{
+                id?: string | undefined;
+            } & {
+                grid: Readonly<{} & {
+                    x: number;
+                    y: number;
+                    w: number;
+                    h: number;
+                }>;
+                type: string;
+                config: Readonly<{} & {}>;
+            }> | Readonly<{
+                id?: string | undefined;
+            } & {
+                title: string;
+                grid: Readonly<{} & {
+                    y: number;
+                }>;
+                panels: Readonly<{
+                    id?: string | undefined;
+                } & {
+                    grid: Readonly<{} & {
+                        x: number;
+                        y: number;
+                        w: number;
+                        h: number;
+                    }>;
+                    type: string;
+                    config: Readonly<{} & {}>;
+                }>[];
+                collapsed: boolean;
+            }>)[];
+            pinned_panels: (Readonly<{
+                id?: string | undefined;
+            } & {
+                type: "esql_control";
+                width: "small" | "medium" | "large";
+                grow: boolean;
+                config: Readonly<{
+                    title?: string | undefined;
+                    display_settings?: Readonly<{
+                        placeholder?: string | undefined;
+                        hide_action_bar?: boolean | undefined;
+                        hide_exclude?: boolean | undefined;
+                        hide_exists?: boolean | undefined;
+                        hide_sort?: boolean | undefined;
+                    }> | undefined;
+                } & {
+                    selected_options: string[];
+                    single_select: boolean;
+                    control_type: "STATIC_VALUES";
+                    available_options: string[];
+                    variable_name: string;
+                    variable_type: "values" | "fields" | "functions" | "time_literal" | "multi_values";
+                }> | Readonly<{
+                    title?: string | undefined;
+                    display_settings?: Readonly<{
+                        placeholder?: string | undefined;
+                        hide_action_bar?: boolean | undefined;
+                        hide_exclude?: boolean | undefined;
+                        hide_exists?: boolean | undefined;
+                        hide_sort?: boolean | undefined;
+                    }> | undefined;
+                } & {
+                    selected_options: string[];
+                    single_select: boolean;
+                    control_type: "VALUES_FROM_QUERY";
+                    variable_name: string;
+                    variable_type: "values" | "fields" | "functions" | "time_literal" | "multi_values";
+                    esql_query: string;
+                }>;
+            }> | Readonly<{
+                id?: string | undefined;
+            } & {
+                type: "options_list_control";
+                width: "small" | "medium" | "large";
+                grow: boolean;
+                config: Readonly<{
+                    title?: string | undefined;
+                    display_settings?: Readonly<{
+                        placeholder?: string | undefined;
+                        hide_action_bar?: boolean | undefined;
+                        hide_exclude?: boolean | undefined;
+                        hide_exists?: boolean | undefined;
+                        hide_sort?: boolean | undefined;
+                    }> | undefined;
+                } & {
+                    sort: Readonly<{} & {
+                        direction: "desc" | "asc";
+                        by: "_count" | "_key";
+                    }>;
+                    exclude: boolean;
+                    field_name: string;
+                    exists_selected: boolean;
+                    run_past_timeout: boolean;
+                    search_technique: "prefix" | "exact" | "wildcard";
+                    selected_options: (string | number)[];
+                    single_select: boolean;
+                    data_view_id: string;
+                    use_global_filters: boolean;
+                    ignore_validations: boolean;
+                }>;
+            }> | Readonly<{
+                id?: string | undefined;
+            } & {
+                type: "range_slider_control";
+                width: "small" | "medium" | "large";
+                grow: boolean;
+                config: Readonly<{
+                    title?: string | undefined;
+                    value?: string[] | undefined;
+                } & {
+                    step: number;
+                    field_name: string;
+                    data_view_id: string;
+                    use_global_filters: boolean;
+                    ignore_validations: boolean;
+                }>;
+            }> | Readonly<{
+                id?: string | undefined;
+            } & {
+                type: "time_slider_control";
+                width: "small" | "medium" | "large";
+                grow: boolean;
+                config: Readonly<{} & {
+                    start_percentage_of_time_range: number;
+                    end_percentage_of_time_range: number;
+                    is_anchored: boolean;
+                }>;
+            }>)[];
+        }>>, "query" | "filters"> & {
+            filters?: import("@kbn/es-query").Filter[];
+            query?: import("@kbn/data-plugin/common").Query;
+            viewMode?: import("@kbn/presentation-publishing").ViewMode;
+            dashboardId?: string;
+            useHash?: boolean;
+            preserveSavedFilters?: boolean;
+            searchSessionId?: string;
+            passThroughContext?: import("@kbn/utility-types").SerializableRecord;
+        }>;
+    };
+    exportJson: () => import("@kbn/utility-types").Writable<Readonly<{
+        query?: Readonly<{} & {
+            language: "kql" | "lucene";
+            expression: string;
+        }> | undefined;
+        description?: string | undefined;
+        tags?: string[] | undefined;
+        time_range?: Readonly<{
+            mode?: "relative" | "absolute" | undefined;
+        } & {
+            from: string;
+            to: string;
+        }> | undefined;
+        filters?: (Readonly<{
+            label?: string | undefined;
+            disabled?: boolean | undefined;
+            negate?: boolean | undefined;
+            data_view_id?: string | undefined;
+            controlled_by?: string | undefined;
+            is_multi_index?: boolean | undefined;
+        } & {
+            type: "condition";
+            condition: Readonly<{
+                negate?: boolean | undefined;
+            } & {
+                value: string | number | boolean;
+                operator: "is";
+                field: string;
+            }> | Readonly<{
+                negate?: boolean | undefined;
+            } & {
+                value: number[] | string[] | boolean[];
+                operator: "is_one_of";
+                field: string;
+            }> | Readonly<{
+                negate?: boolean | undefined;
+            } & {
+                value: Readonly<{
+                    format?: string | undefined;
+                    gt?: string | number | undefined;
+                    gte?: string | number | undefined;
+                    lt?: string | number | undefined;
+                    lte?: string | number | undefined;
+                } & {}>;
+                operator: "range";
+                field: string;
+            }> | Readonly<{
+                negate?: boolean | undefined;
+            } & {
+                operator: "exists";
+                field: string;
+            }>;
+        }> | Readonly<{
+            label?: string | undefined;
+            disabled?: boolean | undefined;
+            negate?: boolean | undefined;
+            data_view_id?: string | undefined;
+            controlled_by?: string | undefined;
+            is_multi_index?: boolean | undefined;
+        } & {
+            group: Readonly<{} & {
+                operator: "or" | "and";
+                conditions: (Readonly<{
+                    negate?: boolean | undefined;
+                } & {
+                    value: string | number | boolean;
+                    operator: "is";
+                    field: string;
+                }> | Readonly<{
+                    negate?: boolean | undefined;
+                } & {
+                    value: number[] | string[] | boolean[];
+                    operator: "is_one_of";
+                    field: string;
+                }> | Readonly<{
+                    negate?: boolean | undefined;
+                } & {
+                    value: Readonly<{
+                        format?: string | undefined;
+                        gt?: string | number | undefined;
+                        gte?: string | number | undefined;
+                        lt?: string | number | undefined;
+                        lte?: string | number | undefined;
+                    } & {}>;
+                    operator: "range";
+                    field: string;
+                }> | Readonly<{
+                    negate?: boolean | undefined;
+                } & {
+                    operator: "exists";
+                    field: string;
+                }> | import("@kbn/as-code-filters-schema").AsCodeGroupFilterRecursive)[];
+            }>;
+            type: "group";
+        }> | Readonly<{
+            label?: string | undefined;
+            disabled?: boolean | undefined;
+            params?: any;
+            field?: string | undefined;
+            negate?: boolean | undefined;
+            data_view_id?: string | undefined;
+            controlled_by?: string | undefined;
+            is_multi_index?: boolean | undefined;
+        } & {
+            type: "dsl";
+            dsl: Record<string, any>;
+        }> | Readonly<{
+            label?: string | undefined;
+            disabled?: boolean | undefined;
+            negate?: boolean | undefined;
+            data_view_id?: string | undefined;
+            controlled_by?: string | undefined;
+            is_multi_index?: boolean | undefined;
+        } & {
+            type: "spatial";
+            dsl: Record<string, any>;
+        }>)[] | undefined;
+        project_routing?: string | undefined;
+        refresh_interval?: Readonly<{} & {
+            value: number;
+            pause: boolean;
+        }> | undefined;
+        access_control?: Readonly<{
+            access_mode?: "default" | "write_restricted" | undefined;
+        } & {}> | undefined;
+    } & {
+        title: string;
+        options: Readonly<{} & {
+            auto_apply_filters: boolean;
+            hide_panel_titles: boolean;
+            hide_panel_borders: boolean;
+            use_margins: boolean;
+            sync_colors: boolean;
+            sync_tooltips: boolean;
+            sync_cursor: boolean;
+        }>;
+        panels: (Readonly<{
+            id?: string | undefined;
+        } & {
+            grid: Readonly<{} & {
+                x: number;
+                y: number;
+                w: number;
+                h: number;
+            }>;
+            type: string;
+            config: Readonly<{} & {}>;
+        }> | Readonly<{
+            id?: string | undefined;
+        } & {
+            title: string;
+            grid: Readonly<{} & {
+                y: number;
+            }>;
+            panels: Readonly<{
+                id?: string | undefined;
+            } & {
+                grid: Readonly<{} & {
+                    x: number;
+                    y: number;
+                    w: number;
+                    h: number;
+                }>;
+                type: string;
+                config: Readonly<{} & {}>;
+            }>[];
+            collapsed: boolean;
+        }>)[];
+        pinned_panels: (Readonly<{
+            id?: string | undefined;
+        } & {
+            type: "esql_control";
+            width: "small" | "medium" | "large";
+            grow: boolean;
+            config: Readonly<{
+                title?: string | undefined;
+                display_settings?: Readonly<{
+                    placeholder?: string | undefined;
+                    hide_action_bar?: boolean | undefined;
+                    hide_exclude?: boolean | undefined;
+                    hide_exists?: boolean | undefined;
+                    hide_sort?: boolean | undefined;
+                }> | undefined;
+            } & {
+                selected_options: string[];
+                single_select: boolean;
+                control_type: "STATIC_VALUES";
+                available_options: string[];
+                variable_name: string;
+                variable_type: "values" | "fields" | "functions" | "time_literal" | "multi_values";
+            }> | Readonly<{
+                title?: string | undefined;
+                display_settings?: Readonly<{
+                    placeholder?: string | undefined;
+                    hide_action_bar?: boolean | undefined;
+                    hide_exclude?: boolean | undefined;
+                    hide_exists?: boolean | undefined;
+                    hide_sort?: boolean | undefined;
+                }> | undefined;
+            } & {
+                selected_options: string[];
+                single_select: boolean;
+                control_type: "VALUES_FROM_QUERY";
+                variable_name: string;
+                variable_type: "values" | "fields" | "functions" | "time_literal" | "multi_values";
+                esql_query: string;
+            }>;
+        }> | Readonly<{
+            id?: string | undefined;
+        } & {
+            type: "options_list_control";
+            width: "small" | "medium" | "large";
+            grow: boolean;
+            config: Readonly<{
+                title?: string | undefined;
+                display_settings?: Readonly<{
+                    placeholder?: string | undefined;
+                    hide_action_bar?: boolean | undefined;
+                    hide_exclude?: boolean | undefined;
+                    hide_exists?: boolean | undefined;
+                    hide_sort?: boolean | undefined;
+                }> | undefined;
+            } & {
+                sort: Readonly<{} & {
+                    direction: "desc" | "asc";
+                    by: "_count" | "_key";
+                }>;
+                exclude: boolean;
+                field_name: string;
+                exists_selected: boolean;
+                run_past_timeout: boolean;
+                search_technique: "prefix" | "exact" | "wildcard";
+                selected_options: (string | number)[];
+                single_select: boolean;
+                data_view_id: string;
+                use_global_filters: boolean;
+                ignore_validations: boolean;
+            }>;
+        }> | Readonly<{
+            id?: string | undefined;
+        } & {
+            type: "range_slider_control";
+            width: "small" | "medium" | "large";
+            grow: boolean;
+            config: Readonly<{
+                title?: string | undefined;
+                value?: string[] | undefined;
+            } & {
+                step: number;
+                field_name: string;
+                data_view_id: string;
+                use_global_filters: boolean;
+                ignore_validations: boolean;
+            }>;
+        }> | Readonly<{
+            id?: string | undefined;
+        } & {
+            type: "time_slider_control";
+            width: "small" | "medium" | "large";
+            grow: boolean;
+            config: Readonly<{} & {
+                start_percentage_of_time_range: number;
+                end_percentage_of_time_range: number;
+                is_anchored: boolean;
+            }>;
+        }>)[];
+    }>>;
+};
+/**
+ * Builds shareableUrlLocatorParams for export operations.
+ */
+export declare function buildShareableUrlLocatorParams(locatorParams: DashboardLocatorParams): {
+    locator: LocatorPublic<DashboardLocatorParams>;
+    params: {
+        timeRange: Readonly<{
+            mode?: "relative" | "absolute" | undefined;
+        } & {
+            from: string;
+            to: string;
+        }> | undefined;
+        title?: string | undefined;
+        options?: Readonly<{} & {
+            auto_apply_filters: boolean;
+            hide_panel_titles: boolean;
+            hide_panel_borders: boolean;
+            use_margins: boolean;
+            sync_colors: boolean;
+            sync_tooltips: boolean;
+            sync_cursor: boolean;
+        }> | undefined;
+        description?: string | undefined;
+        tags?: string[] | undefined;
+        time_range?: Readonly<{
+            mode?: "relative" | "absolute" | undefined;
+        } & {
+            from: string;
+            to: string;
+        }> | undefined;
+        project_routing?: string | undefined;
+        panels?: (Readonly<{
+            id?: string | undefined;
+        } & {
+            grid: Readonly<{} & {
+                x: number;
+                y: number;
+                w: number;
+                h: number;
+            }>;
+            type: string;
+            config: Readonly<{} & {}>;
+        }> | Readonly<{
+            id?: string | undefined;
+        } & {
+            title: string;
+            grid: Readonly<{} & {
+                y: number;
+            }>;
+            panels: Readonly<{
+                id?: string | undefined;
+            } & {
+                grid: Readonly<{} & {
+                    x: number;
+                    y: number;
+                    w: number;
+                    h: number;
+                }>;
+                type: string;
+                config: Readonly<{} & {}>;
+            }>[];
+            collapsed: boolean;
+        }>)[] | undefined;
+        pinned_panels?: (Readonly<{
+            id?: string | undefined;
+        } & {
+            type: "esql_control";
+            width: "small" | "medium" | "large";
+            grow: boolean;
+            config: Readonly<{
+                title?: string | undefined;
+                display_settings?: Readonly<{
+                    placeholder?: string | undefined;
+                    hide_action_bar?: boolean | undefined;
+                    hide_exclude?: boolean | undefined;
+                    hide_exists?: boolean | undefined;
+                    hide_sort?: boolean | undefined;
+                }> | undefined;
+            } & {
+                selected_options: string[];
+                single_select: boolean;
+                control_type: "STATIC_VALUES";
+                available_options: string[];
+                variable_name: string;
+                variable_type: "values" | "fields" | "functions" | "time_literal" | "multi_values";
+            }> | Readonly<{
+                title?: string | undefined;
+                display_settings?: Readonly<{
+                    placeholder?: string | undefined;
+                    hide_action_bar?: boolean | undefined;
+                    hide_exclude?: boolean | undefined;
+                    hide_exists?: boolean | undefined;
+                    hide_sort?: boolean | undefined;
+                }> | undefined;
+            } & {
+                selected_options: string[];
+                single_select: boolean;
+                control_type: "VALUES_FROM_QUERY";
+                variable_name: string;
+                variable_type: "values" | "fields" | "functions" | "time_literal" | "multi_values";
+                esql_query: string;
+            }>;
+        }> | Readonly<{
+            id?: string | undefined;
+        } & {
+            type: "options_list_control";
+            width: "small" | "medium" | "large";
+            grow: boolean;
+            config: Readonly<{
+                title?: string | undefined;
+                display_settings?: Readonly<{
+                    placeholder?: string | undefined;
+                    hide_action_bar?: boolean | undefined;
+                    hide_exclude?: boolean | undefined;
+                    hide_exists?: boolean | undefined;
+                    hide_sort?: boolean | undefined;
+                }> | undefined;
+            } & {
+                sort: Readonly<{} & {
+                    direction: "desc" | "asc";
+                    by: "_count" | "_key";
+                }>;
+                exclude: boolean;
+                field_name: string;
+                exists_selected: boolean;
+                run_past_timeout: boolean;
+                search_technique: "prefix" | "exact" | "wildcard";
+                selected_options: (string | number)[];
+                single_select: boolean;
+                data_view_id: string;
+                use_global_filters: boolean;
+                ignore_validations: boolean;
+            }>;
+        }> | Readonly<{
+            id?: string | undefined;
+        } & {
+            type: "range_slider_control";
+            width: "small" | "medium" | "large";
+            grow: boolean;
+            config: Readonly<{
+                title?: string | undefined;
+                value?: string[] | undefined;
+            } & {
+                step: number;
+                field_name: string;
+                data_view_id: string;
+                use_global_filters: boolean;
+                ignore_validations: boolean;
+            }>;
+        }> | Readonly<{
+            id?: string | undefined;
+        } & {
+            type: "time_slider_control";
+            width: "small" | "medium" | "large";
+            grow: boolean;
+            config: Readonly<{} & {
+                start_percentage_of_time_range: number;
+                end_percentage_of_time_range: number;
+                is_anchored: boolean;
+            }>;
+        }>)[] | undefined;
+        refresh_interval?: Readonly<{} & {
+            value: number;
+            pause: boolean;
+        }> | undefined;
+        access_control?: Readonly<{
+            access_mode?: "default" | "write_restricted" | undefined;
+        } & {}> | undefined;
+        filters?: import("@kbn/es-query").Filter[] | undefined;
+        query?: import("@kbn/data-plugin/common").Query | undefined;
+        viewMode?: import("@kbn/presentation-publishing").ViewMode | undefined;
+        dashboardId?: string | undefined;
+        useHash?: boolean | undefined;
+        preserveSavedFilters?: boolean | undefined;
+        searchSessionId?: string | undefined;
+        passThroughContext?: import("@kbn/utility-types").SerializableRecord | undefined;
+    };
+};
+export declare const mapExportIntegrationToMetaData: (intgrationId: string) => {
+    label: string;
+    testId: string;
+    iconType: string;
+    order: number;
+    separator?: undefined;
+} | {
+    label: string;
+    testId: string;
+    iconType: string;
+    order: number;
+    separator: "above";
+} | {
+    label: string;
+    iconType: undefined;
+    testId: string;
+    order: number;
+    separator?: undefined;
+};

@@ -1,0 +1,10 @@
+export declare const SETTINGS_TITLE: string;
+export declare const SETTINGS_DESCRIPTION: string;
+export declare const SYSTEM_PROMPT_NAME: string;
+export declare const SYSTEM_PROMPT_PROMPT: string;
+export declare const SYSTEM_PROMPT_PROMPT_PLACEHOLDER: string;
+export declare const SYSTEM_PROMPT_DEFAULT_CONVERSATIONS: string;
+export declare const SYSTEM_PROMPT_DEFAULT_NEW_CONVERSATION: string;
+export declare const SYSTEM_PROMPT_DEFAULT_CONVERSATIONS_HELP_TEXT: string;
+export declare const CANCEL: string;
+export declare const SAVE: string;

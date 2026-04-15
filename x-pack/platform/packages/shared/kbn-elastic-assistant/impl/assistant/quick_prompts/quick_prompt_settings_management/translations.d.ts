@@ -1,0 +1,10 @@
+export declare const QUICK_PROMPTS_TABLE_COLUMN_NAME: string;
+export declare const QUICK_PROMPTS_TABLE_COLUMN_DATE_UPDATED: string;
+export declare const QUICK_PROMPTS_DESCRIPTION: string;
+export declare const QUICK_PROMPTS_TABLE_CREATE_BUTTON_TITLE: string;
+export declare const QUICK_PROMPT_TABLE_CAPTION: string;
+export declare const QUICK_PROMPT_EDIT_FLYOUT_TITLE: string;
+export declare const QUICK_PROMPTS_TABLE_COLUMN_CONTEXTS: string;
+export declare const DELETE_QUICK_PROMPT_MODAL_TITLE: (prompt: string) => string;
+export declare const DELETE_QUICK_PROMPT_MODAL_DEFAULT_TITLE: string;
+export declare const DELETE_QUICK_PROMPT_MODAL_DESCRIPTION: string;
