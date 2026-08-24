@@ -7,15 +7,13 @@
 
 export {
   CUSTOM_CONTENT_EMBEDDABLE_TYPE,
-  CUSTOM_CONTENT_MAX_PROMPT_LENGTH,
   CUSTOM_CONTENT_MAX_ESQL_QUERY_LENGTH,
   CUSTOM_CONTENT_MAX_TEMPLATE_BYTES,
   CUSTOM_CONTENT_MAX_TEMPLATE_SCHEMA_LENGTH,
   CUSTOM_CONTENT_SCRIPT_PATTERN,
 } from './constants';
 
-export { customContentStateSchema, customContentUpdateSchema } from './schema';
-export type { CustomContentUpdate } from './schema';
+export { customContentStateSchema } from './schema';
 export type { CustomContentState } from './schema';
 
 export { stripMarkdownFences } from './strip_markdown_fences';

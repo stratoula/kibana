@@ -6,6 +6,7 @@
  */
 
 import {
+  buildCustomContentConfig,
   buildLensConfig,
   buildVegaConfig,
   type VisualizationConfig,
@@ -14,6 +15,7 @@ import {
   VEGA_VIS_TYPE,
   type VisualizationRenderer,
 } from '@kbn/agent-builder-visualizations-common';
+import { CUSTOM_CONTENT_EMBEDDABLE_TYPE } from '@kbn/custom-content-common';
 import type { ModelProvider, ToolEventEmitter } from '@kbn/agent-builder-server';
 import type { AttachmentPanel } from '@kbn/agent-builder-dashboards-common';
 import type { IScopedClusterClient } from '@kbn/core-elasticsearch-server';
@@ -48,6 +50,9 @@ const resolveRenderer = (
     if (existingPanel.type === VEGA_VIS_TYPE) {
       return 'vega';
     }
+    if (existingPanel.type === CUSTOM_CONTENT_EMBEDDABLE_TYPE) {
+      return 'custom_content';
+    }
     return undefined;
   }
   return requestedRenderer ?? 'lens';
@@ -59,16 +64,34 @@ const getExistingVegaSpec = (existingPanel: AttachmentPanel | undefined): string
   return typeof spec === 'string' ? spec : undefined;
 };
 
+/** Pull the template and data query out of an existing custom content panel's config. */
+const getExistingCustomContentState = (
+  existingPanel: AttachmentPanel | undefined
+): { template?: string; esqlQuery?: string } | undefined => {
+  if (existingPanel?.type !== CUSTOM_CONTENT_EMBEDDABLE_TYPE) {
+    return undefined;
+  }
+  const { template, esqlQuery } = (existingPanel.config ?? {}) as {
+    template?: unknown;
+    esqlQuery?: unknown;
+  };
+  return {
+    ...(typeof template === 'string' ? { template } : {}),
+    ...(typeof esqlQuery === 'string' && esqlQuery.length > 0 ? { esqlQuery } : {}),
+  };
+};
+
 /**
  * Default implementation of the generate core's `ResolvePanelContent` seam for
  * `vis` panels.
  *
  * Builds inline visualization panel content from natural language / ES|QL using
  * Kibana plumbing (model provider, ES client, the visualization builders). It
- * resolves to a Lens panel (`buildLensConfig`) or, when the caller asks
- * for Vega, a `vega` panel carrying a serialized Vega-Lite spec in its config
- * (`buildVegaConfig`), and returns it to the core through the type-agnostic
- * {@link PanelContentAttempt} contract.
+ * resolves to a Lens panel (`buildLensConfig`), a `vega` panel carrying a
+ * serialized Vega-Lite spec in its config (`buildVegaConfig`), or a
+ * `custom_content` panel carrying a sandboxed HTML template and its data query
+ * (`buildCustomContentConfig`), and returns it to the core through the
+ * type-agnostic {@link PanelContentAttempt} contract.
  *
  * It ships in `core/resolvers/` so any caller of the generation core — the
  * dashboard tool or a CLI host — gets a ready-to-use vis resolver from one
@@ -89,6 +112,7 @@ export const createVisPanelResolver = ({
     chartType,
     esql,
     renderer: requestedRenderer,
+    contentMode,
     existingPanel,
   }: VisPanelResolutionRequest): Promise<PanelContentAttempt> => {
     try {
@@ -125,6 +149,32 @@ export const createVisPanelResolver = ({
             config: { spec, ...(title ? { title } : {}) },
           },
           ...(authoringNote ? { authoringNote } : {}),
+        };
+      }
+
+      if (renderer === 'custom_content') {
+        const existing = getExistingCustomContentState(existingPanel);
+        const { template, esqlQuery } = await buildCustomContentConfig({
+          nlQuery,
+          index,
+          esql,
+          // Edits keep the existing panel's mode unless explicitly overridden,
+          // so a prompt-only edit of static content never grows a query.
+          contentMode: contentMode ?? (existing && !existing.esqlQuery ? 'static' : 'data'),
+          existingTemplate: existing?.template,
+          existingEsql: existing?.esqlQuery,
+          modelProvider,
+          logger,
+          events,
+          esClient,
+        });
+
+        return {
+          type: 'success',
+          panelContent: {
+            type: CUSTOM_CONTENT_EMBEDDABLE_TYPE,
+            config: { template, ...(esqlQuery ? { esqlQuery } : {}) },
+          },
         };
       }
 

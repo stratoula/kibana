@@ -7,14 +7,12 @@
 
 import { MessageRole } from '@kbn/inference-common';
 import type { ModelProvider } from '@kbn/agent-builder-server';
-import type { IScopedClusterClient } from '@kbn/core-elasticsearch-server';
-import type { Logger } from '@kbn/logging';
-import { appendLimitToQuery } from '@kbn/esql-utils';
 import {
   CUSTOM_CONTENT_SCRIPT_PATTERN,
   CUSTOM_CONTENT_MAX_TEMPLATE_BYTES,
   stripMarkdownFences,
 } from '@kbn/custom-content-common';
+import { sanitizeCellValue } from './sanitize_cell_value';
 
 const CSS_VARS_GUIDANCE = `Use these CSS custom properties — they resolve to the correct EUI palette for both light and dark themes at render time:
 - Required body reset: body { margin: 0; padding: 16px; box-sizing: border-box; font-family: Inter, system-ui, sans-serif; color: var(--cc-color-text); background: var(--cc-color-background); }
@@ -42,9 +40,6 @@ LIQUID SYNTAX:
 - Output value:  {{ row["column name"].value }}
 - Bar width:     <div style="width: {{ row["column name"].pct }}%; ..."></div>
 - Filters:       {{ row["column name"].value | round: 2 }}`;
-import { sanitizeCellValue } from './sanitize_cell_value';
-
-const SAMPLE_ROW_COUNT = 3;
 
 function formatSampleTable(columns: Array<{ name: string }>, rows: unknown[][]): string {
   const header = columns.map((c) => sanitizeCellValue(c.name)).join(' | ');
@@ -103,64 +98,65 @@ CONTENT RULES:
   {% endfor %}`;
 }
 
+/** Pre-fetched sample of the ES|QL results backing a data-driven template. */
+export interface CustomContentSample {
+  columns: Array<{ name: string; type: string }>;
+  rows: unknown[][];
+}
+
 export interface CustomContentTemplateResolverDeps {
   modelProvider: ModelProvider;
-  esClient: IScopedClusterClient;
-  logger: Logger;
+}
+
+export interface ResolveCustomContentTemplateParams {
+  /** Natural-language instruction describing the content to create or change. */
+  prompt: string;
+  /**
+   * Sample of the backing query's results, fetched by the caller. Present when
+   * the template is data-driven and the query is new or changing; the caller is
+   * responsible for surfacing query-execution failures instead of calling this
+   * resolver without a sample.
+   */
+  sample?: CustomContentSample;
+  /**
+   * True when the template stays bound to an ES|QL query. Selects the Liquid
+   * system prompt even when no fresh `sample` is provided (prompt-only
+   * refinement of an existing data-driven template).
+   */
+  hasQuery?: boolean;
+  /** Existing template to refine; omitted when creating from scratch. */
+  existingTemplate?: string;
 }
 
 export const createCustomContentTemplateResolver = ({
   modelProvider,
-  esClient,
-  logger,
 }: CustomContentTemplateResolverDeps) => {
   return async ({
     prompt,
-    esqlQuery,
+    sample,
+    hasQuery,
     existingTemplate,
-    hasExistingQuery,
-  }: {
-    prompt: string;
-    esqlQuery?: string;
-    existingTemplate?: string;
-    /** True when the panel already has an ES|QL query that is not changing. Selects the Liquid system prompt without re-sampling. */
-    hasExistingQuery?: boolean;
-  }): Promise<string> => {
-    let columns: Array<{ name: string; type: string }> = [];
-    let values: unknown[][] = [];
-
-    if (esqlQuery) {
-      try {
-        const sampledQuery = appendLimitToQuery(esqlQuery, SAMPLE_ROW_COUNT);
-        const result = await esClient.asCurrentUser.esql.query({ query: sampledQuery });
-        columns = (result.columns ?? []) as Array<{ name: string; type: string }>;
-        values = (result.values ?? []) as unknown[][];
-      } catch (err) {
-        logger.debug(`custom_content template resolver: ES|QL sample fetch failed — ${err}`);
-      }
-    }
-
-    const systemPrompt =
-      esqlQuery || hasExistingQuery ? buildSystemPromptTemplate() : buildSystemPromptStatic();
+  }: ResolveCustomContentTemplateParams): Promise<string> => {
+    const isDataDriven = Boolean(sample) || Boolean(hasQuery);
+    const systemPrompt = isDataDriven ? buildSystemPromptTemplate() : buildSystemPromptStatic();
 
     let userContent: string;
-    if (esqlQuery) {
+    if (sample) {
       const promptPrefix = prompt ? `${prompt}\n\n` : '';
       let schemaSection: string;
-      if (columns.length > 0) {
-        const schemaLines = columns
+      if (sample.columns.length > 0) {
+        const schemaLines = sample.columns
           .map((c) => `  - ${sanitizeCellValue(c.name)} (${sanitizeCellValue(c.type)})`)
           .join('\n');
         const sampleSection =
-          values.length > 0
-            ? `\n\nSample rows:\n${formatSampleTable(columns, values)}`
+          sample.rows.length > 0
+            ? `\n\nSample rows:\n${formatSampleTable(sample.columns, sample.rows)}`
             : '\n\nNote: no rows available for the current time range.';
         schemaSection = `Data schema:\n${schemaLines}${sampleSection}\n\nGenerate an HTML template that accesses each column via bracket notation using its exact name, e.g. row["${sanitizeCellValue(
-          columns[0].name
+          sample.columns[0].name
         )}"].value.`;
       } else {
-        schemaSection =
-          'Note: schema unavailable. Generate a suitable template for this ES|QL query.';
+        schemaSection = 'Note: schema unavailable. Generate a suitable template for this query.';
       }
 
       if (existingTemplate) {

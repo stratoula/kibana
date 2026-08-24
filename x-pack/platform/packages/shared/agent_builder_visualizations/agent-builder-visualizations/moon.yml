@@ -21,6 +21,7 @@ dependsOn:
   - '@kbn/agent-builder-common'
   - '@kbn/agent-builder-visualizations-common'
   - '@kbn/core-application-browser'
+  - '@kbn/custom-content-common'
   - '@kbn/data-views-plugin'
   - '@kbn/embeddable-plugin'
   - '@kbn/es-query'

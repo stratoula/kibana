@@ -13,7 +13,7 @@ import { ATTACHMENT_REF_ACTOR } from '@kbn/agent-builder-common/attachments';
 import { customContentEmbeddableFactory } from './custom_content_embeddable';
 import type { CustomContentApi } from './custom_content_embeddable';
 import type { CustomContentEmbeddableState } from '../server';
-import { CUSTOM_CONTENT_CONTEXT_ATTACHMENT_TYPE } from '../common/panel_context_attachment';
+import { VISUALIZATION_ATTACHMENT_TYPE } from '@kbn/agent-builder-visualizations-common';
 import { apiIsPresentationContainer } from '@kbn/presentation-publishing';
 import type { openLazyFlyout } from '@kbn/presentation-util';
 import type { EditCustomContentFlyoutProps } from './components/edit_custom_content_flyout';
@@ -412,7 +412,7 @@ describe('customContentEmbeddableFactory', () => {
             input: {
               attachment_refs: [
                 {
-                  attachment_id: 'att-1',
+                  attachment_id: 'visualization-test-uuid',
                   version: 2,
                   operation: 'updated',
                   actor: ATTACHMENT_REF_ACTOR.agent,
@@ -422,15 +422,17 @@ describe('customContentEmbeddableFactory', () => {
           },
           attachments: [
             {
-              id: 'att-1',
-              type: CUSTOM_CONTENT_CONTEXT_ATTACHMENT_TYPE,
+              id: 'visualization-test-uuid',
+              type: VISUALIZATION_ATTACHMENT_TYPE,
               current_version: 2,
               versions: [
                 {
                   version: 2,
                   data: {
-                    panel_template: '<p>agent result</p>',
-                    embeddable_id: 'test-uuid',
+                    renderer: 'custom_content',
+                    query: 'Custom content dashboard panel test-uuid',
+                    visualization: { template: '<p>agent result</p>' },
+                    esql: 'FROM metrics | LIMIT 10',
                   },
                 },
               ],
@@ -442,14 +444,19 @@ describe('customContentEmbeddableFactory', () => {
       await act(async () => chatEvents$.next(roundCompleteEvent));
 
       expect(embeddable.api.serializeState().template).toBe('<p>agent result</p>');
+      expect(embeddable.api.serializeState().esqlQuery).toBe('FROM metrics | LIMIT 10');
       expect(mockAddAttachment).toHaveBeenCalledWith(
         expect.objectContaining({
-          data: expect.objectContaining({ panel_template: '<p>agent result</p>' }),
+          id: 'visualization-test-uuid',
+          data: expect.objectContaining({
+            renderer: 'custom_content',
+            visualization: expect.objectContaining({ template: '<p>agent result</p>' }),
+          }),
         })
       );
     });
 
-    it('ignores events for a different embeddable_id', async () => {
+    it('ignores agent updates to other visualization attachments', async () => {
       const chatEvents$ = new Subject<unknown>();
       const activeConversation$ = new BehaviorSubject<{ id: string } | null>({ id: 'conv-1' });
 
@@ -470,7 +477,7 @@ describe('customContentEmbeddableFactory', () => {
             input: {
               attachment_refs: [
                 {
-                  attachment_id: 'att-1',
+                  attachment_id: 'visualization-different-uuid',
                   version: 2,
                   operation: 'updated',
                   actor: ATTACHMENT_REF_ACTOR.agent,
@@ -480,15 +487,17 @@ describe('customContentEmbeddableFactory', () => {
           },
           attachments: [
             {
-              id: 'att-1',
-              type: CUSTOM_CONTENT_CONTEXT_ATTACHMENT_TYPE,
+              id: 'visualization-different-uuid',
+              type: VISUALIZATION_ATTACHMENT_TYPE,
               current_version: 2,
               versions: [
                 {
                   version: 2,
                   data: {
-                    panel_template: '<p>other panel</p>',
-                    embeddable_id: 'different-uuid',
+                    renderer: 'custom_content',
+                    query: 'Custom content dashboard panel different-uuid',
+                    visualization: { template: '<p>other panel</p>' },
+                    esql: '',
                   },
                 },
               ],
@@ -557,7 +566,9 @@ describe('customContentEmbeddableFactory', () => {
         expect.objectContaining({
           attachments: expect.arrayContaining([
             expect.objectContaining({
-              data: expect.objectContaining({ embeddable_id: 'test-uuid' }),
+              id: 'visualization-test-uuid',
+              type: VISUALIZATION_ATTACHMENT_TYPE,
+              data: expect.objectContaining({ renderer: 'custom_content' }),
             }),
           ]),
           sessionTag: expect.stringContaining('test-uuid'),

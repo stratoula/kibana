@@ -5,19 +5,11 @@
  * 2.0.
  */
 
-import {
-  CUSTOM_CONTENT_EMBEDDABLE_TYPE,
-  type CustomContentState,
-} from '@kbn/custom-content-common';
 import type { PanelFailure } from '../utils';
-import { getErrorMessage } from '../utils';
-import { DASHBOARD_OPERATION_FAILURE_TYPES } from '../failure_types';
 import type { DashboardOperation } from './registry';
-import type { ResolveCustomContentTemplate } from './types';
 import {
   PANEL_TYPE_DEFINITIONS,
   type AddPanelsItemInput,
-  type CustomContentPanelConfig,
   type NewPanelInput,
   type PanelContent,
   type PanelRequestInput,
@@ -146,9 +138,12 @@ export const resolvePanelCreationRequests = async ({
                 identifier: request.panelInput.query,
                 nlQuery: request.panelInput.query,
                 index: request.panelInput.index,
-                chartType: request.panelInput.chartType,
+                chartType:
+                  'chartType' in request.panelInput ? request.panelInput.chartType : undefined,
                 esql: request.panelInput.esql,
                 renderer: request.panelInput.renderer,
+                contentMode:
+                  'contentMode' in request.panelInput ? request.panelInput.contentMode : undefined,
               }),
             }))
           ),
@@ -224,58 +219,4 @@ export const createPanelInputMaterializer = ({
         : {}),
     };
   };
-};
-
-export const applyCustomContentTemplates = async (
-  materialized: Array<{ panel: MaterializedPanelInput | undefined }>,
-  resolveTemplate: ResolveCustomContentTemplate,
-  failures: PanelFailure[]
-): Promise<void> => {
-  await Promise.all(
-    materialized.map(async (entry) => {
-      const { panel } = entry;
-      if (!panel) return;
-      if (panel.panelContent.type !== CUSTOM_CONTENT_EMBEDDABLE_TYPE) return;
-      const { prompt, ...persistedConfig } = panel.panelContent.config as CustomContentPanelConfig &
-        CustomContentState;
-      if (!prompt || persistedConfig.template) return;
-
-      try {
-        const template = await resolveTemplate({ prompt, esqlQuery: persistedConfig.esqlQuery });
-        panel.panelContent = {
-          ...panel.panelContent,
-          config: { ...persistedConfig, template },
-        };
-      } catch (err) {
-        failures.push({
-          type: DASHBOARD_OPERATION_FAILURE_TYPES.addPanels,
-          identifier: prompt,
-          error: getErrorMessage(err),
-        });
-        entry.panel = undefined;
-      }
-    })
-  );
-};
-
-export const mergeAndResolveCustomContentEdit = async (
-  editConfig: { prompt?: string; esqlQuery?: string | null },
-  existing: CustomContentState,
-  resolveTemplate: ResolveCustomContentTemplate
-): Promise<CustomContentState> => {
-  const isQueryChanging = editConfig.esqlQuery !== undefined;
-  const mergedEsqlQuery = !isQueryChanging
-    ? existing.esqlQuery
-    : editConfig.esqlQuery === null
-    ? undefined
-    : editConfig.esqlQuery;
-  // An unchanged query is passed as `hasExistingQuery` rather than `esqlQuery` so the resolver
-  // refines the existing template instead of re-sampling data that did not change.
-  const template = await resolveTemplate({
-    prompt: editConfig.prompt ?? '',
-    esqlQuery: isQueryChanging ? mergedEsqlQuery : undefined,
-    existingTemplate: existing.template,
-    hasExistingQuery: !isQueryChanging && !!mergedEsqlQuery,
-  });
-  return { esqlQuery: mergedEsqlQuery, template };
 };

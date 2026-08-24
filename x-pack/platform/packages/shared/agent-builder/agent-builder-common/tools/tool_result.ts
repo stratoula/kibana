@@ -127,9 +127,12 @@ export enum SupportedChartType {
 export interface VisualizationResultData {
   esql: string;
   time_range?: TimeRange;
-  renderer?: 'lens' | 'vega';
-  /** Shared visualization payload. Vega stores spec at visualization.spec. */
-  visualization: Record<string, unknown> & { spec?: string };
+  renderer?: 'lens' | 'vega' | 'custom_content';
+  /**
+   * Shared visualization payload. Vega stores spec at visualization.spec;
+   * custom content stores its HTML template at visualization.template.
+   */
+  visualization: Record<string, unknown> & { spec?: string; template?: string };
   /** Optional chart type identifier (primarily Lens). */
   chart_type?: SupportedChartType;
   /**

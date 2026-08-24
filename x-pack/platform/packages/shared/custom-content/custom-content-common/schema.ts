@@ -7,7 +7,6 @@
 
 import { z } from '@kbn/zod/v4';
 import {
-  CUSTOM_CONTENT_MAX_PROMPT_LENGTH,
   CUSTOM_CONTENT_MAX_ESQL_QUERY_LENGTH,
   CUSTOM_CONTENT_MAX_TEMPLATE_SCHEMA_LENGTH,
 } from './constants';
@@ -22,30 +21,3 @@ export const customContentStateSchema = z.object({
 });
 
 export type CustomContentState = z.output<typeof customContentStateSchema>;
-
-/**
- * Generation input for the create-panel and update-panel tools. `prompt` instructs this operation
- * only and is never persisted; the server generates `template`.
- */
-export const customContentUpdateSchema = z
-  .object({
-    prompt: z
-      .string()
-      .min(1)
-      .max(CUSTOM_CONTENT_MAX_PROMPT_LENGTH)
-      .optional()
-      .describe(
-        'Natural language instruction for what to create or change. The server generates the HTML template from this prompt.'
-      ),
-    esqlQuery: z
-      .string()
-      .max(CUSTOM_CONTENT_MAX_ESQL_QUERY_LENGTH)
-      .nullable()
-      .optional()
-      .describe('ES|QL query. Omit to keep the existing query. Pass null to remove it entirely.'),
-  })
-  .refine(({ prompt, esqlQuery }) => prompt !== undefined || esqlQuery !== undefined, {
-    message: 'At least one of prompt or esqlQuery must be provided.',
-  });
-
-export type CustomContentUpdate = z.output<typeof customContentUpdateSchema>;

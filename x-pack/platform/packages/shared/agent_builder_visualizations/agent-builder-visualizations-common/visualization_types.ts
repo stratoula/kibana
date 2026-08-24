@@ -7,17 +7,22 @@
 
 /**
  * Which engine renders a generated visualization. Lens is the default for
- * standard charts; Vega is used for requests Lens cannot express.
+ * standard charts; Vega is used for requests Lens cannot express; custom
+ * content is the last resort for non-chart HTML layouts rendered in a
+ * sandboxed iframe.
  */
-export type VisualizationRenderer = 'lens' | 'vega';
+export type VisualizationRenderer = 'lens' | 'vega' | 'custom_content';
 
 export interface VisualizationAttachmentData {
   /** Renderer discriminator. Omitted defaults to Lens for legacy attachments. */
   renderer?: VisualizationRenderer;
   /** The display query */
   query: string;
-  /** Visualization configuration payload. For Vega, includes a serialized spec. */
-  visualization: Record<string, unknown> & { spec?: string };
+  /**
+   * Visualization configuration payload. Vega stores a serialized spec at
+   * `spec`; custom content stores a Liquid HTML template at `template`.
+   */
+  visualization: Record<string, unknown> & { spec?: string; template?: string };
   /** Optional chart type identifier (primarily used by Lens). */
   chart_type?: string;
   /** The ES|QL query backing the visualization. */

@@ -6,22 +6,16 @@
  */
 
 import type { AttachmentPanel } from '@kbn/agent-builder-dashboards-common';
-import {
-  CUSTOM_CONTENT_EMBEDDABLE_TYPE,
-  type CustomContentState,
-} from '@kbn/custom-content-common';
 import { z } from '@kbn/zod/v4';
 import { createPanelFailureResult, type PanelContentAttempt } from '../resolve_panel';
 import { indexPanelsById, updatePanelInDashboard } from '../dashboard_state';
 import { DASHBOARD_OPERATION_FAILURE_TYPES } from '../failure_types';
-import { getErrorMessage } from '../utils';
 import {
   PANEL_TYPE_DEFINITIONS,
   editPanelItemSchema,
   type EditPanelItem,
   type EditPanelRequestInput,
 } from './panels';
-import { mergeAndResolveCustomContentEdit } from './panel_creation';
 import { defineOperation } from './types';
 
 /** An edit that passed validation, always carrying the existing panel snapshot. */
@@ -40,7 +34,7 @@ export const editPanelsOperation = defineOperation({
       panels: z.array(editPanelItemSchema).min(1),
     })
     .describe(
-      'Edit existing panels in place by panelId. Supports ES|QL-backed Lens and Vega visualization panels (source: "request", which keep their existing renderer), markdown panels (source: "config", type: "markdown"), and custom content panels (source: "config", type: "custom_content"). DSL, form-based, and other non-ES|QL visualization panels are not supported for direct editing and should be recreated as new ES|QL-based panels instead.'
+      'Edit existing panels in place by panelId. Supports ES|QL-backed Lens, Vega, and custom content visualization panels (source: "request", which keep their existing renderer) and markdown panels (source: "config", type: "markdown"). DSL, form-based, and other non-ES|QL visualization panels are not supported for direct editing and should be recreated as new ES|QL-based panels instead.'
     ),
   handler: async ({ dashboardData, operation, context }) => {
     const { resolvePanelContent } = context;
@@ -133,27 +127,11 @@ export const editPanelsOperation = defineOperation({
 
     // Apply valid edits in input order so state changes remain deterministic.
     let nextDashboardData = dashboardData;
-    for (const { panelInput, existingPanel } of validEdits) {
+    for (const { panelInput } of validEdits) {
       if (panelInput.source === 'config') {
-        let resolvedConfig: typeof panelInput.config;
-        try {
-          resolvedConfig =
-            panelInput.type === CUSTOM_CONTENT_EMBEDDABLE_TYPE && existingPanel
-              ? context.resolveCustomContentTemplate
-                ? await mergeAndResolveCustomContentEdit(
-                    panelInput.config,
-                    existingPanel.config as CustomContentState,
-                    context.resolveCustomContentTemplate
-                  )
-                : { ...(existingPanel.config as CustomContentState), ...panelInput.config }
-              : panelInput.config;
-        } catch (err) {
-          recordFailure(panelInput.panelId, getErrorMessage(err));
-          continue;
-        }
-
-        const panelContent =
-          PANEL_TYPE_DEFINITIONS[panelInput.type].buildPanelContent(resolvedConfig);
+        const panelContent = PANEL_TYPE_DEFINITIONS[panelInput.type].buildPanelContent(
+          panelInput.config
+        );
         const updateResult = updatePanelInDashboard({
           dashboardData: nextDashboardData,
           panelId: panelInput.panelId,

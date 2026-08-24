@@ -106,6 +106,7 @@ export function createVisualizationRenderer({
           services={services}
           renderer={data.renderer}
           visualization={data.visualization}
+          esql={data.esql}
           timeRange={data.time_range}
         />
       );

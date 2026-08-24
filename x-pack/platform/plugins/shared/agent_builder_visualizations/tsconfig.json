@@ -13,6 +13,7 @@
     "@kbn/agent-builder-visualizations-server",
     "@kbn/agent-builder-visualizations",
     "@kbn/agent-builder-visualizations-common",
+    "@kbn/custom-content-common",
     "@kbn/agent-builder-sml-plugin",
     "@kbn/lens-embeddable-utils",
     "@kbn/lens-plugin",

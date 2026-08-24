@@ -7,12 +7,9 @@
 
 import { CUSTOM_CONTENT_MAX_TEMPLATE_BYTES } from '@kbn/custom-content-common';
 import type { ModelProvider } from '@kbn/agent-builder-server';
-import type { IScopedClusterClient } from '@kbn/core-elasticsearch-server';
-import type { Logger } from '@kbn/logging';
 import { createCustomContentTemplateResolver } from './custom_content_resolver';
 
 const mockChatComplete = jest.fn();
-const mockEsqlQuery = jest.fn();
 
 const modelProvider = {
   getDefaultModel: jest.fn().mockResolvedValue({
@@ -20,47 +17,49 @@ const modelProvider = {
   }),
 } as unknown as ModelProvider;
 
-const esClient = {
-  asCurrentUser: {
-    esql: { query: mockEsqlQuery },
-  },
-} as unknown as IScopedClusterClient;
-
-const logger = { debug: jest.fn() } as unknown as Logger;
+const sample = {
+  columns: [
+    { name: 'category', type: 'keyword' },
+    { name: 'revenue', type: 'double' },
+  ],
+  rows: [
+    ['shoes', 100],
+    ['hats', 50],
+  ],
+};
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockEsqlQuery.mockResolvedValue({ columns: [], values: [] });
 });
 
 describe('createCustomContentTemplateResolver — system prompt selection', () => {
-  const resolve = createCustomContentTemplateResolver({ modelProvider, esClient, logger });
+  const resolve = createCustomContentTemplateResolver({ modelProvider });
 
-  it('uses the Liquid system prompt when hasExistingQuery is true and esqlQuery is omitted', async () => {
-    mockChatComplete.mockResolvedValue({ content: '<div>{{ row["x"].value }}</div>' });
+  it('uses the Liquid system prompt when a sample is provided', async () => {
+    mockChatComplete.mockResolvedValue({ content: '<div>{{ row["revenue"].value }}</div>' });
 
-    await resolve({
-      prompt: 'Change the colors',
-      existingTemplate: '<div>{{ row["x"].value }}</div>',
-      hasExistingQuery: true,
-    });
-
-    expect(mockEsqlQuery).not.toHaveBeenCalled();
+    await resolve({ prompt: 'Show revenue by category', sample });
 
     const systemArg: string = mockChatComplete.mock.calls[0][0].system;
     expect(systemArg).toContain('Liquid template syntax');
     expect(systemArg).not.toContain('Output ONLY valid HTML');
   });
 
-  it('does not sample ES when hasExistingQuery is true and esqlQuery is omitted', async () => {
+  it('uses the Liquid system prompt when hasQuery is true and no sample is provided', async () => {
     mockChatComplete.mockResolvedValue({ content: '<div>ok</div>' });
 
-    await resolve({ prompt: 'Restyle', hasExistingQuery: true });
+    await resolve({
+      prompt: 'Change the colors',
+      existingTemplate: '<div>{{ row["x"].value }}</div>',
+      hasQuery: true,
+    });
 
-    expect(mockEsqlQuery).not.toHaveBeenCalled();
+    const systemArg: string = mockChatComplete.mock.calls[0][0].system;
+    expect(systemArg).toContain('Liquid template syntax');
+    expect(systemArg).not.toContain('Output ONLY valid HTML');
   });
 
-  it('uses the static system prompt when neither esqlQuery nor hasExistingQuery is set', async () => {
+  it('uses the static system prompt when neither sample nor hasQuery is set', async () => {
     mockChatComplete.mockResolvedValue({ content: '<div>hello</div>' });
 
     await resolve({ prompt: 'Show a KPI card' });
@@ -69,10 +68,35 @@ describe('createCustomContentTemplateResolver — system prompt selection', () =
     expect(systemArg).toContain('Output ONLY valid HTML');
     expect(systemArg).not.toContain('Liquid template syntax');
   });
+
+  it('includes the sample schema and rows in the user message', async () => {
+    mockChatComplete.mockResolvedValue({ content: '<div>ok</div>' });
+
+    await resolve({ prompt: 'Show revenue by category', sample });
+
+    const userContent: string = mockChatComplete.mock.calls[0][0].messages[0].content;
+    expect(userContent).toContain('category (keyword)');
+    expect(userContent).toContain('revenue (double)');
+    expect(userContent).toContain('shoes | 100');
+  });
+
+  it('asks to preserve the existing template layout on edits', async () => {
+    mockChatComplete.mockResolvedValue({ content: '<div>ok</div>' });
+
+    await resolve({
+      prompt: 'Make it red',
+      sample,
+      existingTemplate: '<div>{{ row["revenue"].value }}</div>',
+    });
+
+    const userContent: string = mockChatComplete.mock.calls[0][0].messages[0].content;
+    expect(userContent).toContain('Current template:');
+    expect(userContent).toContain('Preserve the overall layout');
+  });
 });
 
 describe('createCustomContentTemplateResolver — output validation', () => {
-  const resolve = createCustomContentTemplateResolver({ modelProvider, esClient, logger });
+  const resolve = createCustomContentTemplateResolver({ modelProvider });
 
   it('returns the template when the LLM output is valid HTML', async () => {
     mockChatComplete.mockResolvedValue({ content: '<div>hello</div>' });

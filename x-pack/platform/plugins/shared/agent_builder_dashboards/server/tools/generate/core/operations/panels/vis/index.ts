@@ -12,26 +12,31 @@ import {
   VEGA_VIS_TYPE,
   type VisualizationRenderer,
 } from '@kbn/agent-builder-visualizations-common';
+import {
+  CUSTOM_CONTENT_EMBEDDABLE_TYPE,
+  CUSTOM_CONTENT_MAX_TEMPLATE_SCHEMA_LENGTH,
+} from '@kbn/custom-content-common';
 import { LENS_EMBEDDABLE_TYPE } from '@kbn/lens-common';
 import { z } from '@kbn/zod/v4';
 import { definePanelType } from '../panel_type';
 import type { PanelResolutionRequestBase } from '../../../resolve_panel';
 
 /**
- * Lens visualization panel logic.
+ * Visualization (`vis`) panel logic.
  *
  * A visualization reaches a dashboard either via `source: 'config'` (its
- * already-resolved Lens config passed by value) or `source: 'request'` (resolved
- * from a natural-language / ES|QL query). This module owns the Lens embeddable
+ * already-resolved config passed by value) or `source: 'request'` (resolved
+ * from a natural-language / ES|QL query). This module owns the embeddable
  * identity, the by-value config contract, the vis input schemas (add + edit), and
- * the vis resolution-request contract. The resolver that turns these requests into
- * Lens panel content lives in `core/resolvers/vis_panel_resolver.ts`.
+ * the vis resolution-request contract for all three renderers (Lens, Vega,
+ * custom content). The resolver that turns these requests into panel content
+ * lives in `core/resolvers/vis_panel_resolver.ts`.
  */
 
 /**
- * Request to resolve a Lens visualization panel from a natural-language / ES|QL
+ * Request to resolve a visualization panel from a natural-language / ES|QL
  * query. This is the `vis` member of the panel resolution union; the resolver
- * (see `core/resolvers/vis_panel_resolver.ts`) turns it into Lens panel content.
+ * (see `core/resolvers/vis_panel_resolver.ts`) turns it into panel content.
  */
 export interface VisPanelResolutionRequest extends PanelResolutionRequestBase {
   type: 'vis';
@@ -49,6 +54,11 @@ export interface VisPanelResolutionRequest extends PanelResolutionRequestBase {
    * renderer.
    */
   renderer?: VisualizationRenderer;
+  /**
+   * Custom-content only: `'static'` renders fixed HTML without a data query.
+   * Defaults to `'data'`; edits keep the existing panel's mode when omitted.
+   */
+  contentMode?: 'data' | 'static';
 }
 
 const visPanelConfigSchema = z.record(z.string().max(256), z.unknown()).check((ctx) => {
@@ -61,6 +71,27 @@ const visPanelConfigSchema = z.record(z.string().max(256), z.unknown()).check((c
         'config looks like a whole visualization attachment. Pass only its `visualization` field (a Lens API config, or a Vega `{ spec }` config), not the entire attachment.',
       input: config,
     });
+    return;
+  }
+
+  // A custom-content visualization's `visualization` field is a `{ template }`
+  // config: accept it by value and bound the serialized template, matching the
+  // attachment schema. An optional `esqlQuery` string carries its data query.
+  if ('template' in config) {
+    const { template } = config as { template?: unknown };
+    if (typeof template !== 'string' || template.length === 0) {
+      ctx.issues.push({
+        code: 'custom',
+        message: 'Custom content panel config must provide a non-empty `template` string.',
+        input: config,
+      });
+    } else if (template.length > CUSTOM_CONTENT_MAX_TEMPLATE_SCHEMA_LENGTH) {
+      ctx.issues.push({
+        code: 'custom',
+        message: `Custom content panel \`template\` must be at most ${CUSTOM_CONTENT_MAX_TEMPLATE_SCHEMA_LENGTH} characters.`,
+        input: config,
+      });
+    }
     return;
   }
 
@@ -88,7 +119,7 @@ const visPanelConfigSchema = z.record(z.string().max(256), z.unknown()).check((c
     ctx.issues.push({
       code: 'custom',
       message:
-        'config is neither a Lens API config (missing a top-level `type`) nor a Vega config (missing `spec`). Pass the `visualization` field read from a visualization attachment.',
+        'config is not a Lens API config (missing a top-level `type`), a Vega config (missing `spec`), or a custom content config (missing `template`). Pass the `visualization` field read from a visualization attachment.',
       input: config,
     });
   }
@@ -103,7 +134,7 @@ export const visPanelConfigInputSchema = z.object({
   type: z.literal('vis'),
   grid: panelGridSchema,
   config: visPanelConfigSchema.describe(
-    'Already-resolved visualization config, passed by value from a visualization attachment\'s `visualization` field: either a Lens API config (has a top-level `type`) or a Vega config (`{ spec }`). Do not hand-build a config for a new visualization here — use source: "request" instead.'
+    'Already-resolved visualization config, passed by value from a visualization attachment\'s `visualization` field: a Lens API config (has a top-level `type`), a Vega config (`{ spec }`), or a custom content config (`{ template }` — also copy the attachment\'s `esql` value into `esqlQuery` when present). Do not hand-build a config for a new visualization here — use source: "request" instead.'
   ),
 });
 
@@ -161,10 +192,32 @@ export const vegaPanelRequestSchema = panelRequestBaseSchema.extend({
 });
 
 /**
- * A `request`-source input creates a Lens or Vega visualization from a
- * natural-language (or ES|QL) query.
+ * A new custom-content panel renders sandboxed HTML; it has no Lens chart type.
+ * Last resort — only for layouts neither Lens nor Vega can render.
  */
-export const panelRequestSchema = z.union([lensPanelRequestSchema, vegaPanelRequestSchema]);
+export const customContentPanelRequestSchema = panelRequestBaseSchema.extend({
+  renderer: z
+    .literal('custom_content')
+    .describe(
+      'Render as sandboxed custom HTML content. LAST RESORT: use ONLY when the request is not a chart at all (bespoke HTML layouts such as KPI cards, status boards, badge/pill lists). NEVER use it for anything Lens or Vega can render.'
+    ),
+  contentMode: z
+    .enum(['data', 'static'])
+    .optional()
+    .describe(
+      "(optional) 'static' renders fixed HTML without any data query. Use it ONLY when the user explicitly asks for content without data. Defaults to 'data'."
+    ),
+});
+
+/**
+ * A `request`-source input creates a Lens, Vega, or custom-content
+ * visualization from a natural-language (or ES|QL) query.
+ */
+export const panelRequestSchema = z.union([
+  lensPanelRequestSchema,
+  vegaPanelRequestSchema,
+  customContentPanelRequestSchema,
+]);
 
 export type PanelRequestInput = z.infer<typeof panelRequestSchema>;
 
@@ -193,16 +246,22 @@ export type EditPanelRequestInput = z.infer<typeof editPanelRequestInputSchema>;
 
 /**
  * Registry entry for the `vis` panel type. A by-value (`source: 'config'`) vis
- * panel can carry either a Lens API config or a Vega `{ spec }` config, so the
- * embeddable is chosen from the config shape: a `spec` string routes to the Vega
- * embeddable, everything else stays Lens. Vis is not editable via a
- * `source: 'config'` edit (edits go through `source: 'request'`), so
- * `validateConfigEdit` is intentionally omitted.
+ * panel can carry a Lens API config, a Vega `{ spec }` config, or a custom
+ * content `{ template }` config, so the embeddable is chosen from the config
+ * shape: a `spec` string routes to the Vega embeddable, a `template` string to
+ * the custom content embeddable, everything else stays Lens. Vis is not
+ * editable via a `source: 'config'` edit (edits go through
+ * `source: 'request'`), so `validateConfigEdit` is intentionally omitted.
  */
 export const visPanelDefinition = definePanelType({
   embeddableType: LENS_EMBEDDABLE_TYPE,
   buildPanelContent: (config) => {
-    const isVegaConfig = typeof (config as { spec?: unknown })?.spec === 'string';
-    return { type: isVegaConfig ? VEGA_VIS_TYPE : LENS_EMBEDDABLE_TYPE, config };
+    if (typeof (config as { spec?: unknown })?.spec === 'string') {
+      return { type: VEGA_VIS_TYPE, config };
+    }
+    if (typeof (config as { template?: unknown })?.template === 'string') {
+      return { type: CUSTOM_CONTENT_EMBEDDABLE_TYPE, config };
+    }
+    return { type: LENS_EMBEDDABLE_TYPE, config };
   },
 });

@@ -10,3 +10,9 @@ export { getChartTypeSelectionPromptContent } from './lens/chart_type_guidance';
 export { getEsqlDataSourceCarriers } from './lens/graph_lens';
 export type { VisualizationConfig } from './lens/types';
 export { buildVegaConfig } from './vega';
+export { buildCustomContentConfig } from './custom_content/build_custom_content_config';
+export type {
+  BuildCustomContentConfigParams,
+  BuildCustomContentConfigResult,
+  CustomContentMode,
+} from './custom_content/build_custom_content_config';

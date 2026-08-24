@@ -36,30 +36,44 @@ describe('panel item schemas', () => {
   });
 });
 
-const customContentBase = {
-  source: 'config' as const,
-  type: 'custom_content' as const,
+const customContentRequest = {
+  source: 'request' as const,
+  type: 'vis' as const,
+  renderer: 'custom_content' as const,
+  query: 'Show a KPI card for total errors',
   grid: { x: 0, y: 0, w: 6, h: 4 },
-  config: { prompt: 'Show a KPI card for total errors' },
 };
 
-describe('custom_content panel schemas', () => {
+describe('custom_content renderer schemas', () => {
   it.each([
     ['add_panels', addPanelsItemSchema],
     ['add_section', addSectionPanelItemSchema],
-  ])('accepts a minimal custom_content panel (prompt only) through %s', (_, schema) => {
-    expect(schema.safeParse(customContentBase).success).toBe(true);
+  ])('accepts a custom_content request without chartType through %s', (_, schema) => {
+    expect(schema.safeParse(customContentRequest).success).toBe(true);
   });
 
   it.each([
     ['add_panels', addPanelsItemSchema],
     ['add_section', addSectionPanelItemSchema],
-  ])('accepts a custom_content panel with template and esqlQuery through %s', (_, schema) => {
+  ])('accepts a static custom_content request through %s', (_, schema) => {
     expect(
       schema.safeParse({
-        ...customContentBase,
+        ...customContentRequest,
+        contentMode: 'static' as const,
+      }).success
+    ).toBe(true);
+  });
+
+  it.each([
+    ['add_panels', addPanelsItemSchema],
+    ['add_section', addSectionPanelItemSchema],
+  ])('accepts a by-value custom_content vis config through %s', (_, schema) => {
+    expect(
+      schema.safeParse({
+        source: 'config' as const,
+        type: 'vis' as const,
+        grid: { x: 0, y: 0, w: 6, h: 4 },
         config: {
-          prompt: 'Error rate by service',
           template: '<div>{{ row["service.name"].value }}</div>',
           esqlQuery: 'FROM logs-* | STATS count = COUNT(*) BY service.name',
         },
@@ -70,22 +84,24 @@ describe('custom_content panel schemas', () => {
   it.each([
     ['add_panels', addPanelsItemSchema],
     ['add_section', addSectionPanelItemSchema],
-  ])('rejects a custom_content panel missing prompt through %s', (_, schema) => {
+  ])('rejects a by-value custom_content config with an empty template through %s', (_, schema) => {
     expect(
       schema.safeParse({
-        ...customContentBase,
-        config: {},
+        source: 'config' as const,
+        type: 'vis' as const,
+        grid: { x: 0, y: 0, w: 6, h: 4 },
+        config: { template: '' },
       }).success
     ).toBe(false);
   });
 
-  it('accepts a custom_content edit_panels item', () => {
+  it('accepts a custom_content edit as a request-source vis edit', () => {
     expect(
       editPanelItemSchema.safeParse({
-        source: 'config' as const,
-        type: 'custom_content' as const,
+        source: 'request' as const,
+        type: 'vis' as const,
         panelId: 'panel-123',
-        config: { prompt: 'Updated KPI', template: '<div>Updated</div>' },
+        query: 'Update the KPI card to show error rate instead',
       }).success
     ).toBe(true);
   });

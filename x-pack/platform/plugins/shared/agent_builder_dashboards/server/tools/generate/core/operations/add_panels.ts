@@ -10,7 +10,7 @@ import { z } from '@kbn/zod/v4';
 import { appendPanelsToDashboard } from '../dashboard_state';
 import { defineOperation } from './types';
 import { addPanelsItemSchema } from './panels';
-import { createPanelInputMaterializer, applyCustomContentTemplates } from './panel_creation';
+import { createPanelInputMaterializer } from './panel_creation';
 
 export const addPanelsOperation = defineOperation({
   schema: z.object({
@@ -29,14 +29,6 @@ export const addPanelsOperation = defineOperation({
       item,
       panel: materializePanelInput(item, i),
     }));
-
-    if (context.resolveCustomContentTemplate) {
-      await applyCustomContentTemplates(
-        materialized,
-        context.resolveCustomContentTemplate,
-        context.failures
-      );
-    }
 
     let nextDashboardData = dashboardData;
 

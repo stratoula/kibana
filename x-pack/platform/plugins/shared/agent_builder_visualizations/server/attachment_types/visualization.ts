@@ -5,6 +5,7 @@
  * 2.0.
  */
 
+import { platformCoreTools } from '@kbn/agent-builder-common';
 import {
   VISUALIZATION_ATTACHMENT_TYPE,
   type VisualizationAttachmentData,
@@ -88,17 +89,28 @@ export const createVisualizationAttachmentType = (): AttachmentTypeDefinition<
         const kindLine =
           data.renderer === 'vega'
             ? 'Renderer: Vega'
+            : data.renderer === 'custom_content'
+            ? 'Renderer: Custom content (sandboxed HTML)'
             : data.chart_type
             ? `Chart type: ${data.chart_type}`
             : 'Renderer: Lens';
+        const lines = [
+          'Visualization attachment',
+          `Query: ${data.query}`,
+          kindLine,
+          data.esql ? `ES|QL: ${data.esql}` : 'ES|QL: (none — static content)',
+        ];
+        if (data.renderer === 'custom_content') {
+          const template = (data.visualization as { template?: unknown }).template;
+          lines.push(
+            typeof template === 'string' && template.length > 0
+              ? `Template:\n\`\`\`html\n${template}\n\`\`\``
+              : 'Template: (empty — no template generated yet)'
+          );
+        }
         return {
           type: 'text',
-          value: [
-            'Visualization attachment',
-            `Query: ${data.query}`,
-            kindLine,
-            `ES|QL: ${data.esql}`,
-          ].join('\n'),
+          value: lines.join('\n'),
         };
       },
     }),
@@ -106,9 +118,9 @@ export const createVisualizationAttachmentType = (): AttachmentTypeDefinition<
     isReadonly: false,
 
     getAgentDescription: () => {
-      return 'A visualization attachment contains a shared visualization payload and a renderer discriminator (lens or vega). Vega specs live at visualization.spec. Time range can be controlled by configuring a time_range property directly on the attachment.data with from and to fields. Rendering it inline displays the visualization as a dynamic, interactive chart component in the conversation UI. Visualization attachments can also be added to dashboard compositions through dashboard panel-ingestion operations.';
+      return 'A visualization attachment contains a shared visualization payload and a renderer discriminator (lens, vega, or custom_content). The data shape is: { renderer, query (natural-language description), esql (top-level string, a sibling of visualization — use "" for static content), visualization (renderer payload: a Lens config, { spec } for vega, or { template } for custom_content), time_range? ({ from, to }) }. To create or edit a visualization attachment, prefer the create_visualization tool (pass attachment_id to edit an existing one) instead of writing attachment data by hand. Rendering it inline displays the visualization as a dynamic, interactive chart component in the conversation UI. Visualization attachments can also be added to dashboard compositions through dashboard panel-ingestion operations.';
     },
 
-    getTools: () => [],
+    getTools: () => [platformCoreTools.createVisualization],
   };
 };

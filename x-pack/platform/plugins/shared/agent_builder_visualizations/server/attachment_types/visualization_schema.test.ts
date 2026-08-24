@@ -5,6 +5,7 @@
  * 2.0.
  */
 
+import { CUSTOM_CONTENT_MAX_TEMPLATE_SCHEMA_LENGTH } from '@kbn/custom-content-common';
 import { MAX_VEGA_SPEC_LENGTH, visualizationAttachmentDataSchema } from './visualization_schema';
 
 describe('visualizationAttachmentDataSchema', () => {
@@ -95,5 +96,105 @@ describe('visualizationAttachmentDataSchema', () => {
     });
 
     expect(result.success).toBe(true);
+  });
+
+  it('accepts a custom_content attachment carrying a template', () => {
+    const result = visualizationAttachmentDataSchema.safeParse({
+      renderer: 'custom_content',
+      query: 'a status board by host',
+      visualization: { template: '<div>{{ row["host"].value }}</div>' },
+      esql: 'FROM logs | STATS count() BY host',
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it('accepts a static custom_content attachment with an empty esql', () => {
+    const result = visualizationAttachmentDataSchema.safeParse({
+      renderer: 'custom_content',
+      query: 'a welcome card',
+      visualization: { template: '<div>Welcome</div>' },
+      esql: '',
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  // Dashboard panels push an empty draft attachment before the agent generates the template.
+  it('accepts a custom_content attachment with an empty template', () => {
+    const result = visualizationAttachmentDataSchema.safeParse({
+      renderer: 'custom_content',
+      query: 'Custom content dashboard panel panel-1',
+      visualization: { template: '' },
+      esql: '',
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  // Agent-written updates commonly nest esql inside the renderer payload; the
+  // schema hoists it so a hand-written edit doesn't hard-fail the round.
+  it('hoists a misplaced visualization.esql to the top level', () => {
+    const result = visualizationAttachmentDataSchema.safeParse({
+      renderer: 'custom_content',
+      query: 'a status board by host',
+      visualization: {
+        template: '<div>{{ row["host"].value }}</div>',
+        esql: 'FROM logs | STATS count() BY host',
+      },
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.data).toEqual({
+      renderer: 'custom_content',
+      query: 'a status board by host',
+      visualization: { template: '<div>{{ row["host"].value }}</div>' },
+      esql: 'FROM logs | STATS count() BY host',
+    });
+  });
+
+  it('defaults a missing esql to an empty string', () => {
+    const result = visualizationAttachmentDataSchema.safeParse({
+      renderer: 'custom_content',
+      query: 'a welcome card',
+      visualization: { template: '<div>Welcome</div>' },
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.data?.esql).toBe('');
+  });
+
+  it('keeps the top-level esql when both placements are present', () => {
+    const result = visualizationAttachmentDataSchema.safeParse({
+      renderer: 'custom_content',
+      query: 'a status board by host',
+      visualization: { template: '<div></div>', esql: 'FROM nested' },
+      esql: 'FROM top_level',
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.data?.esql).toBe('FROM top_level');
+  });
+
+  it('rejects a custom_content attachment that is missing its template', () => {
+    const result = visualizationAttachmentDataSchema.safeParse({
+      renderer: 'custom_content',
+      query: 'a status board by host',
+      visualization: {},
+      esql: 'FROM logs | STATS count() BY host',
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects a custom_content attachment whose template exceeds the maximum length', () => {
+    const result = visualizationAttachmentDataSchema.safeParse({
+      renderer: 'custom_content',
+      query: 'a status board by host',
+      visualization: { template: 'x'.repeat(CUSTOM_CONTENT_MAX_TEMPLATE_SCHEMA_LENGTH + 1) },
+      esql: 'FROM logs | STATS count() BY host',
+    });
+
+    expect(result.success).toBe(false);
   });
 });

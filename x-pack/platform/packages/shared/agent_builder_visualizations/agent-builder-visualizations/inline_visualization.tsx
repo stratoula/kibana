@@ -19,12 +19,26 @@ const LazyVisualizeVega = React.lazy(() =>
   import('./visualize_vega').then((m) => ({ default: m.VisualizeVega }))
 );
 
+const LazyVisualizeCustomContent = React.lazy(() =>
+  import('./visualize_custom_content').then((m) => ({ default: m.VisualizeCustomContent }))
+);
+
 export interface InlineVisualizationProps {
   services: VisualizationServices;
-  /** Which renderer to use. Anything other than `'vega'` renders via Lens. */
-  renderer?: 'lens' | 'vega';
-  /** Renderer-specific payload: a Lens config, or a Vega spec under `spec`. */
+  /** Which renderer to use. Anything other than `'vega'`/`'custom_content'` renders via Lens. */
+  renderer?: 'lens' | 'vega' | 'custom_content';
+  /**
+   * Renderer-specific payload: a Lens config, a Vega spec under `spec`, or a
+   * custom-content HTML template under `template`.
+   */
   visualization: Record<string, unknown>;
+  /**
+   * ES|QL query backing the visualization. Top-level (not part of the
+   * renderer-specific `visualization` payload) to mirror the attachment data
+   * shape, where every renderer carries it. Only the custom_content renderer
+   * consumes it at render time — Lens embeds the query in its own config.
+   */
+  esql?: string;
   timeRange?: TimeRange;
   registerActionButtons?: InlineRenderCallbacks['registerActionButtons'];
 }
@@ -38,6 +52,7 @@ export const InlineVisualization = ({
   services,
   renderer,
   visualization,
+  esql,
   timeRange,
   registerActionButtons,
 }: InlineVisualizationProps) => {
@@ -47,6 +62,14 @@ export const InlineVisualization = ({
         <LazyVisualizeVega
           services={services}
           visualization={visualization}
+          timeRange={timeRange}
+          registerActionButtons={registerActionButtons}
+        />
+      ) : renderer === 'custom_content' ? (
+        <LazyVisualizeCustomContent
+          services={services}
+          visualization={visualization}
+          esql={esql}
           timeRange={timeRange}
           registerActionButtons={registerActionButtons}
         />

@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { sectionGridSchema } from '@kbn/agent-builder-dashboards-common';
 import type { AttachmentPanel, DashboardSection } from '@kbn/agent-builder-dashboards-common';
 import { z } from '@kbn/zod/v4';
-import { createPanelInputMaterializer, applyCustomContentTemplates } from './panel_creation';
+import { createPanelInputMaterializer } from './panel_creation';
 import { defineOperation } from './types';
 import { addSectionPanelItemSchema } from './panels';
 
@@ -47,14 +47,6 @@ export const addSectionOperation = defineOperation({
         item,
         panel: materializePanelInput(item, i),
       }));
-
-      if (context.resolveCustomContentTemplate) {
-        await applyCustomContentTemplates(
-          materialized,
-          context.resolveCustomContentTemplate,
-          context.failures
-        );
-      }
 
       const sectionPanels: AttachmentPanel[] = [];
 

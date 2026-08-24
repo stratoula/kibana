@@ -7,17 +7,24 @@
 
 import type { Logger } from '@kbn/core/server';
 import { ToolResultType, SupportedChartType } from '@kbn/agent-builder-common/tools/tool_result';
+import { ATTACHMENT_REF_ACTOR } from '@kbn/agent-builder-common/attachments';
 import { VISUALIZATION_ATTACHMENT_TYPE } from '@kbn/agent-builder-visualizations-common';
-import { buildLensConfig, buildVegaConfig } from '@kbn/agent-builder-visualizations-server';
+import {
+  buildLensConfig,
+  buildVegaConfig,
+  buildCustomContentConfig,
+} from '@kbn/agent-builder-visualizations-server';
 import { createVisualizationTool } from './create_visualization';
 
 jest.mock('@kbn/agent-builder-visualizations-server', () => ({
   buildLensConfig: jest.fn(),
   buildVegaConfig: jest.fn(),
+  buildCustomContentConfig: jest.fn(),
 }));
 
 const mockBuildLens = buildLensConfig as jest.Mock;
 const mockBuildVega = buildVegaConfig as jest.Mock;
+const mockBuildCustomContent = buildCustomContentConfig as jest.Mock;
 
 const createLogger = (): Logger =>
   ({
@@ -79,6 +86,23 @@ describe('createVisualizationTool schema', () => {
     );
   });
 
+  it('allows a new custom_content visualization without chartType', () => {
+    expect(
+      schema.safeParse({ query: 'a KPI status board', renderer: 'custom_content' }).success
+    ).toBe(true);
+  });
+
+  it('rejects contentMode for non-custom_content renderers', () => {
+    expect(
+      schema.safeParse({
+        query: 'errors over time',
+        renderer: 'lens',
+        chartType: SupportedChartType.XY,
+        contentMode: 'static',
+      }).success
+    ).toBe(false);
+  });
+
   it('allows an attachment update without chartType', () => {
     expect(
       schema.safeParse({ query: 'use a clearer title', attachment_id: 'existing' }).success
@@ -109,6 +133,10 @@ describe('createVisualizationTool handler', () => {
       spec: '{"$schema":"vega-lite"}',
       esqlQuery: 'FROM logs | STATS count() BY host',
     });
+    mockBuildCustomContent.mockResolvedValue({
+      template: '<div>{{ row["host"].value }}</div>',
+      esqlQuery: 'FROM logs | STATS count() BY host',
+    });
   });
 
   it('builds a Lens visualization by default and persists it', async () => {
@@ -119,8 +147,10 @@ describe('createVisualizationTool handler', () => {
 
     expect(mockBuildLens).toHaveBeenCalledTimes(1);
     expect(mockBuildVega).not.toHaveBeenCalled();
+    // The agent actor is required so clients can attribute the edit to the agent.
     expect(attachments.add).toHaveBeenCalledWith(
-      expect.objectContaining({ type: VISUALIZATION_ATTACHMENT_TYPE })
+      expect.objectContaining({ type: VISUALIZATION_ATTACHMENT_TYPE }),
+      ATTACHMENT_REF_ACTOR.agent
     );
 
     expect(result.results).toHaveLength(1);
@@ -150,6 +180,156 @@ describe('createVisualizationTool handler', () => {
     expect(data.esql).toBe('FROM logs | STATS count() BY host');
     expect(data.chart_type).toBeUndefined();
     expect(data.query).toBeUndefined();
+  });
+
+  it('builds custom content when the renderer is "custom_content"', async () => {
+    const { result } = await runHandler({
+      query: 'a status board by host',
+      renderer: 'custom_content',
+    });
+
+    expect(mockBuildCustomContent).toHaveBeenCalledTimes(1);
+    expect(mockBuildCustomContent).toHaveBeenCalledWith(
+      expect.objectContaining({ nlQuery: 'a status board by host', contentMode: 'data' })
+    );
+    expect(mockBuildLens).not.toHaveBeenCalled();
+    expect(mockBuildVega).not.toHaveBeenCalled();
+
+    const [{ type, data }] = result.results;
+    expect(type).toBe(ToolResultType.visualization);
+    expect(data.renderer).toBe('custom_content');
+    expect(data.visualization).toEqual({ template: '<div>{{ row["host"].value }}</div>' });
+    expect(data.esql).toBe('FROM logs | STATS count() BY host');
+    expect(data.chart_type).toBeUndefined();
+  });
+
+  it('stores an empty esql for static custom content', async () => {
+    mockBuildCustomContent.mockResolvedValue({
+      template: '<div>Welcome</div>',
+      esqlQuery: undefined,
+    });
+
+    const { result } = await runHandler({
+      query: 'a welcome card',
+      renderer: 'custom_content',
+      contentMode: 'static',
+    });
+
+    expect(mockBuildCustomContent).toHaveBeenCalledWith(
+      expect.objectContaining({ contentMode: 'static' })
+    );
+    const [{ data }] = result.results;
+    expect(data.esql).toBe('');
+    expect(data.visualization).toEqual({ template: '<div>Welcome</div>' });
+  });
+
+  it('reuses the existing template when updating a custom_content attachment', async () => {
+    const attachments = createAttachments();
+    attachments.getAttachmentRecord.mockReturnValue({
+      id: 'existing',
+      type: VISUALIZATION_ATTACHMENT_TYPE,
+      current_version: 1,
+      versions: [
+        {
+          version: 1,
+          data: {
+            renderer: 'custom_content',
+            query: 'old query',
+            visualization: { template: '<div>Old</div>' },
+            esql: 'FROM old',
+          },
+        },
+      ],
+    });
+
+    const { result } = await runHandler(
+      { query: 'make the badges red', attachment_id: 'existing' },
+      { attachments }
+    );
+
+    expect(mockBuildCustomContent).toHaveBeenCalledTimes(1);
+    expect(mockBuildCustomContent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        existingTemplate: '<div>Old</div>',
+        existingEsql: 'FROM old',
+        contentMode: 'data',
+      })
+    );
+    expect(mockBuildLens).not.toHaveBeenCalled();
+    expect(attachments.update).toHaveBeenCalledWith(
+      'existing',
+      expect.objectContaining({
+        data: expect.objectContaining({ renderer: 'custom_content' }),
+      }),
+      ATTACHMENT_REF_ACTOR.agent
+    );
+
+    const [{ type, data }] = result.results;
+    expect(type).toBe(ToolResultType.visualization);
+    expect(data.renderer).toBe('custom_content');
+  });
+
+  // Dashboard panels push an empty draft attachment before the agent generates anything;
+  // an empty template must behave like a brand-new visualization (data mode, no edit baseline).
+  it('treats an empty existing template as a new custom_content visualization', async () => {
+    const attachments = createAttachments();
+    attachments.getAttachmentRecord.mockReturnValue({
+      id: 'existing',
+      type: VISUALIZATION_ATTACHMENT_TYPE,
+      current_version: 1,
+      versions: [
+        {
+          version: 1,
+          data: {
+            renderer: 'custom_content',
+            query: 'Custom content dashboard panel panel-1',
+            visualization: { template: '' },
+            esql: '',
+          },
+        },
+      ],
+    });
+
+    await runHandler({ query: 'a status board by host', attachment_id: 'existing' }, { attachments });
+
+    expect(mockBuildCustomContent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        existingTemplate: undefined,
+        contentMode: 'data',
+      })
+    );
+  });
+
+  it('preserves the panel title when updating a custom_content attachment', async () => {
+    const attachments = createAttachments();
+    attachments.getAttachmentRecord.mockReturnValue({
+      id: 'existing',
+      type: VISUALIZATION_ATTACHMENT_TYPE,
+      current_version: 1,
+      versions: [
+        {
+          version: 1,
+          data: {
+            renderer: 'custom_content',
+            query: 'old query',
+            visualization: { template: '<div>Old</div>', title: 'My panel' },
+            esql: 'FROM old',
+          },
+        },
+      ],
+    });
+
+    await runHandler({ query: 'make the badges red', attachment_id: 'existing' }, { attachments });
+
+    expect(attachments.update).toHaveBeenCalledWith(
+      'existing',
+      expect.objectContaining({
+        data: expect.objectContaining({
+          visualization: expect.objectContaining({ title: 'My panel' }),
+        }),
+      }),
+      ATTACHMENT_REF_ACTOR.agent
+    );
   });
 
   it('keeps the existing renderer when updating by attachment id', async () => {
@@ -184,7 +364,8 @@ describe('createVisualizationTool handler', () => {
     );
     expect(attachments.update).toHaveBeenCalledWith(
       'existing',
-      expect.objectContaining({ data: expect.objectContaining({ renderer: 'vega' }) })
+      expect.objectContaining({ data: expect.objectContaining({ renderer: 'vega' }) }),
+      ATTACHMENT_REF_ACTOR.agent
     );
     expect(attachments.add).not.toHaveBeenCalled();
 

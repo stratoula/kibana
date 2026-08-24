@@ -46,12 +46,15 @@ import { ATTACHMENT_REF_ACTOR, getLatestVersion } from '@kbn/agent-builder-commo
 import { CUSTOM_CONTENT_EMBEDDABLE_TYPE } from '@kbn/custom-content-common';
 import type { DataView } from '@kbn/data-views-plugin/common';
 import { getESQLAdHocDataview } from '@kbn/esql-utils';
+import {
+  VISUALIZATION_ATTACHMENT_TYPE,
+  type VisualizationAttachmentData,
+} from '@kbn/agent-builder-visualizations-common';
 import { getServices } from './services';
 import {
-  CUSTOM_CONTENT_CONTEXT_ATTACHMENT_TYPE,
-  type CustomContentContextAttachmentData,
-} from '../common/panel_context_attachment';
-import { buildCustomContentContextAttachment } from './utils/chat_integration';
+  buildCustomContentVisualizationAttachment,
+  getCustomContentAttachmentId,
+} from './utils/chat_integration';
 import { CUSTOM_CONTENT_REFINE_SESSION_TAG } from '../common/constants';
 import type { CustomContentEmbeddableState } from '../server';
 import { CustomContentComponent } from './components/custom_content_component';
@@ -163,7 +166,7 @@ export const customContentEmbeddableFactory: EmbeddablePublicDefinition<
               closeFlyout();
               agentBuilder.openChat({
                 attachments: [
-                  buildCustomContentContextAttachment(
+                  buildCustomContentVisualizationAttachment(
                     draftTemplate,
                     draftEsqlQuery,
                     uuid,
@@ -330,31 +333,36 @@ export const customContentEmbeddableFactory: EmbeddablePublicDefinition<
             .subscribe((event) => {
               if (!isRoundCompleteEvent(event)) return;
 
+              // Match on this panel's deterministic attachment id: the agent may
+              // create or update other visualization attachments in the same round.
+              const panelAttachmentId = getCustomContentAttachmentId(uuid);
               const updatedRef = event.data.round.input.attachment_refs?.find(
                 (ref) =>
+                  ref.attachment_id === panelAttachmentId &&
                   ref.actor === ATTACHMENT_REF_ACTOR.agent &&
                   (ref.operation === 'updated' || ref.operation === 'created')
               );
               if (!updatedRef) return;
 
               const updatedAttachment = event.data.attachments?.find(
-                (a) =>
-                  a.id === updatedRef.attachment_id &&
-                  a.type === CUSTOM_CONTENT_CONTEXT_ATTACHMENT_TYPE
+                (a) => a.id === panelAttachmentId && a.type === VISUALIZATION_ATTACHMENT_TYPE
               );
               if (!updatedAttachment) return;
 
               const data = getLatestVersion(updatedAttachment)?.data as
-                | CustomContentContextAttachmentData
+                | VisualizationAttachmentData
                 | undefined;
-              if (!data || data.embeddable_id !== uuid) return;
+              if (!data || data.renderer !== 'custom_content') return;
+              const template = data.visualization?.template;
+              if (typeof template !== 'string') return;
 
-              template$.next(data.panel_template);
-              esqlQuery$.next(data.esql_query);
+              const esqlQuery = data.esql || undefined;
+              template$.next(template);
+              esqlQuery$.next(esqlQuery);
               agentBuilder.addAttachment(
-                buildCustomContentContextAttachment(
-                  data.panel_template,
-                  data.esql_query,
+                buildCustomContentVisualizationAttachment(
+                  template,
+                  esqlQuery,
                   uuid,
                   titleManager.api.title$.getValue() ?? undefined
                 )
@@ -371,7 +379,7 @@ export const customContentEmbeddableFactory: EmbeddablePublicDefinition<
           if (tracksOverlays(parentApi)) parentApi.clearOverlays();
           agentBuilder.openChat({
             attachments: [
-              buildCustomContentContextAttachment('', undefined, uuid, panelTitle ?? undefined),
+              buildCustomContentVisualizationAttachment('', undefined, uuid, panelTitle ?? undefined),
             ],
             sessionTag: `${CUSTOM_CONTENT_REFINE_SESSION_TAG}-${uuid}`,
           });
