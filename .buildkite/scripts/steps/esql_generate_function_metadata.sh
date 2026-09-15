@@ -31,7 +31,7 @@ maybe_update_esql_definitions () {
 
   echo "@elastic/esql-definitions: $current → $latest. Bumping @elastic/esql in package.json."
   sed -i "s/\"@elastic\/esql\": \"[^\"]*\"/\"@elastic\/esql\": \"$latest\"/" package.json
-  pnpm install --no-frozen-lockfile
+  pnpm kbn bootstrap --no-prebuilt
   VERSION_BUMPED=true
 }
 
